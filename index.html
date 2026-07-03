@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Roll Call — Class Attendance</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Special+Elite&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Special+Elite&family=Inter:wght@400;500;600,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 :root{
   --paper:#ECF0F5;
@@ -38,6 +38,8 @@ body{
   color:var(--ink);
   font-family:'Inter',sans-serif;
   min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
 }
 .mono{font-family:'IBM Plex Mono',monospace;}
 .display{font-family:'Special Elite',cursive;}
@@ -181,7 +183,7 @@ select,input[type=date],input[type=text],input[type=time],input[type=password]{
   color:var(--ink);
   transition:background .12s ease;
 }
-.class-tab:hover{background:var(--paper-dark);}
+.class-tab:hover{background:var(--paper-dark);} 
 .class-tab.active{
   background:var(--paper-dark);
   border-color:var(--ink);
@@ -196,7 +198,7 @@ select,input[type=date],input[type=text],input[type=time],input[type=password]{
   display:flex;gap:6px;padding:8px;border-top:1px solid var(--paper-line);
 }
 .add-row input{flex:1;min-width:0;font-size:12.5px;padding:6px 8px;}
-.cap-note{padding:8px 12px; font-size:11.5px; color:var(--ink-soft); border-top:1px solid var(--paper-line);}
+.cap-note{padding:8px 12px; font-size:11.5px; color:var(--ink-soft); border-top:1px solid var(--paper-line);} 
 .btn{
   border:1.5px solid var(--ink);
   background:var(--ink);
@@ -209,28 +211,28 @@ select,input[type=date],input[type=text],input[type=time],input[type=password]{
   transition:opacity .12s ease, transform .08s ease;
 }
 .btn:hover{opacity:0.85;}
-.btn:active{transform:translateY(1px);}
-.btn.ghost{background:transparent;color:var(--ink);}
-.btn.small{padding:5px 9px;font-size:11.5px;}
-.btn.green{background:var(--present);border-color:var(--present);}
-.btn.red{background:var(--absent);border-color:var(--absent);}
-.btn:disabled{opacity:0.4;cursor:not-allowed;}
+.btn:active{transform:translateY(1px);} 
+.btn.ghost{background:transparent;color:var(--ink);} 
+.btn.small{padding:5px 9px;font-size:11.5px;} 
+.btn.green{background:var(--present);border-color:var(--present);} 
+.btn.red{background:var(--absent);border-color:var(--absent);} 
+.btn:disabled{opacity:0.4;cursor:not-allowed;} 
 
-.stats-body{padding:12px;font-size:13px;}
-.stat-line{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--paper-line);}
-.stat-line:last-child{border-bottom:none;}
-.stat-line .val{font-family:'IBM Plex Mono',monospace;font-weight:600;}
-.low-list{list-style:none;padding:0;margin:8px 0 0;display:flex;flex-direction:column;gap:5px;}
-.low-list li{font-size:12px;color:var(--absent);display:flex;justify-content:space-between;}
-.empty-note{padding:12px;font-size:12.5px;color:var(--ink-soft);}
-.stats-actions{margin-top:10px; display:flex; gap:6px; flex-wrap:wrap;}
+.stats-body{padding:12px;font-size:13px;} 
+.stat-line{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--paper-line);} 
+.stat-line:last-child{border-bottom:none;} 
+.stat-line .val{font-family:'IBM Plex Mono',monospace;font-weight:600;} 
+.low-list{list-style:none;padding:0;margin:8px 0 0;display:flex;flex-direction:column;gap:5px;} 
+.low-list li{font-size:12px;color:var(--absent);display:flex;justify-content:space-between;} 
+.empty-note{padding:12px;font-size:12.5px;color:var(--ink-soft);} 
+.stats-actions{margin-top:10px; display:flex; gap:6px; flex-wrap:wrap;} 
 
-.main{display:flex;flex-direction:column;gap:16px;}
+.main{display:flex;flex-direction:column;gap:16px;} 
 
 .toolbar{
   display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;
 }
-.class-title-wrap{display:flex; flex-direction:column; gap:4px;}
+.class-title-wrap{display:flex; flex-direction:column; gap:4px;} 
 .class-title{
   font-family:'Special Elite',cursive;
   font-size:22px;
@@ -241,8 +243,8 @@ select,input[type=date],input[type=text],input[type=time],input[type=password]{
   color:var(--ink-soft);
   font-weight:500;
 }
-.schedule-line{font-size:11.5px; color:var(--ink-soft);}
-.toolbar-right{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+.schedule-line{font-size:11.5px; color:var(--ink-soft);} 
+.toolbar-right{display:flex; align-items:center; gap:10px; flex-wrap:wrap;} 
 .live-badge{
   display:inline-flex;align-items:center;gap:6px;
   border:2px solid var(--stamp);
@@ -256,13 +258,13 @@ select,input[type=date],input[type=text],input[type=time],input[type=password]{
   animation:stamp-in .32s ease-out;
   box-shadow:0 2px 6px rgba(51,65,126,0.18);
 }
-@media (prefers-reduced-motion: reduce){ .live-badge{animation:none;} }
+@media (prefers-reduced-motion: reduce){ .live-badge{animation:none;} } 
 @keyframes stamp-in{
-  0%{opacity:0; transform:scale(1.4) rotate(-3deg);}
-  70%{opacity:1; transform:scale(0.96) rotate(-3deg);}
-  100%{opacity:1; transform:scale(1) rotate(-3deg);}
+  0%{opacity:0; transform:scale(1.4) rotate(-3deg);} 
+  70%{opacity:1; transform:scale(0.96) rotate(-3deg);} 
+  100%{opacity:1; transform:scale(1) rotate(-3deg);} 
 }
-.live-dot{width:7px;height:7px;border-radius:50%;background:var(--stamp);}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--stamp);} 
 @media (prefers-reduced-motion: no-preference){
   .live-dot{animation:pulse 1.4s ease-in-out infinite;}
 }
@@ -275,9 +277,208 @@ select,input[type=date],input[type=text],input[type=time],input[type=password]{
   padding:5px 10px 5px 12px;
   border-radius:4px;
 }
-.code-chip .code-label{font-size:10px; text-transform:uppercase; letter-spacing:0.6px; color:var(--ink-soft);}
-.code-chip .code-value{font-family:'IBM Plex Mono',monospace; font-size:17px; font-weight:700; letter-spacing:3px; color:var(--gold-dark);}
+.code-chip .code-label{font-size:10px; text-transform:uppercase; letter-spacing:0.6px; color:var(--ink-soft);} 
+.code-chip .code-value{font-family:'IBM Plex Mono',monospace; font-size:17px; font-weight:700; letter-spacing:3px; color:var(--gold-dark);} 
 
-.session-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
-.mode-select{display:inline-flex; border:1.5px solid var(--ink); border-radius:20px; overflow:hidden;}
-.mode-btn{border:none; background:var(--card); color:var(--ink); padding:6px 12px; font-size
+.session-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;} 
+.mode-select{display:inline-flex; border:1.5px solid var(--ink); border-radius:20px; overflow:hidden;} 
+.mode-btn{border:none; background:var(--card); color:var(--ink); padding:6px 12px; font-size:13px; cursor:pointer;} 
+.mode-btn.active{background:var(--present-bg); color:var(--present);} 
+
+/* layout content */
+.content{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:12px;
+}
+.attendance-card{
+  background:var(--card);
+  border:1.5px solid var(--paper-line);
+  border-radius:6px;
+  padding:12px;
+  box-shadow:var(--shadow);
+}
+.student-list{width:100%; border-collapse:collapse; font-size:14px;} 
+.student-list th, .student-list td{padding:8px 10px; text-align:left; border-bottom:1px dashed var(--paper-line);} 
+.student-list th{font-size:12px; color:var(--ink-soft); font-weight:600;} 
+.status-pill{display:inline-block;padding:4px 8px;border-radius:999px;font-weight:600;font-size:12px;} 
+.status-present{background:var(--present-bg); color:var(--present); border:1px solid rgba(31,111,99,0.18);} 
+.status-absent{background:var(--absent-bg); color:var(--absent); border:1px solid rgba(162,59,59,0.18);} 
+
+/* responsive tweaks */
+@media (max-width:820px){
+  .header{gap:10px;} 
+  .brand h1{font-size:20px;} 
+}
+</style>
+</head>
+<body>
+  <div id="app">
+    <header class="header">
+      <div class="brand">
+        <div class="mark display">RC</div>
+        <div>
+          <h1>Roll Call</h1>
+          <div class="sub">Class Attendance</div>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <div class="mode-indicator live">Live</div>
+        <div class="admin-toggle">
+          <button id="adminSwitch" class="switch" aria-pressed="false"><span class="knob"></span></button>
+          <span class="mono" style="margin-left:8px">Admin</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="panel">
+          <div class="panel-head">Classes</div>
+          <ul class="class-list" id="classList">
+            <li class="class-tab active" data-class="Physics 101">Physics 101 <button class="del" title="Delete">✕</button></li>
+            <li class="class-tab" data-class="Math 202">Math 202 <button class="del" title="Delete">✕</button></li>
+            <li class="class-tab" data-class="History">History <button class="del" title="Delete">✕</button></li>
+            <div class="add-row">
+              <input id="newClass" placeholder="New class name" />
+              <button id="addClass" class="btn small ghost">Add</button>
+            </div>
+            <div class="cap-note">Keep class names short and descriptive.</div>
+          </ul>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">Stats</div>
+          <div class="stats-body">
+            <div class="stat-line"><div>Total students</div><div class="val">24</div></div>
+            <div class="stat-line"><div>Present</div><div class="val">20</div></div>
+            <div class="stat-line"><div>Absent</div><div class="val">4</div></div>
+            <div class="stats-actions">
+              <button class="btn small ghost">Export</button>
+              <button class="btn small">Sync</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="toolbar">
+          <div class="class-title-wrap">
+            <div class="class-title">Physics 101 <span class="count">• Today</span></div>
+            <div class="schedule-line">Mon • Wed • Fri · 10:00 — 11:00</div>
+          </div>
+
+          <div class="toolbar-right">
+            <div class="code-chip"><div class="code-label">Code</div><div class="code-value mono">PH101</div></div>
+            <div class="session-controls">
+              <div class="mode-select" role="tablist" aria-label="Attendance mode">
+                <button class="mode-btn active" data-mode="take">Take</button>
+                <button class="mode-btn" data-mode="view">View</button>
+              </div>
+              <div class="live-badge"><span class="live-dot"></span><span style="margin-left:6px">LIVE</span></div>
+            </div>
+          </div>
+        </div>
+
+        <section class="content">
+          <div class="attendance-card">
+            <table class="student-list" aria-describedby="attendance-desc">
+              <caption id="attendance-desc" style="caption-side:top;text-align:left;padding-bottom:8px;font-weight:600">Attendance — Physics 101</caption>
+              <thead>
+                <tr><th>Student</th><th>ID</th><th>Status</th><th>Action</th></tr>
+              </thead>
+              <tbody id="studentsTbody">
+                <tr>
+                  <td>Ravi Kumar</td>
+                  <td class="mono">S-001</td>
+                  <td><span class="status-pill status-present">Present</span></td>
+                  <td><button class="btn small ghost toggle-present">Toggle</button></td>
+                </tr>
+                <tr>
+                  <td>Asha Mehta</td>
+                  <td class="mono">S-002</td>
+                  <td><span class="status-pill status-absent">Absent</span></td>
+                  <td><button class="btn small ghost toggle-present">Toggle</button></td>
+                </tr>
+                <tr>
+                  <td>Jin Patel</td>
+                  <td class="mono">S-003</td>
+                  <td><span class="status-pill status-present">Present</span></td>
+                  <td><button class="btn small ghost toggle-present">Toggle</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // Small interactive JS for demo purposes:
+    document.addEventListener('click', function (e) {
+      // Toggle admin switch
+      if (e.target.closest('#adminSwitch')) {
+        var btn = document.getElementById('adminSwitch');
+        var on = btn.classList.toggle('on');
+        btn.setAttribute('aria-pressed', String(on));
+      }
+
+      // Switch attendance mode buttons
+      var modeBtn = e.target.closest('.mode-btn');
+      if (modeBtn) {
+        var group = modeBtn.parentElement;
+        Array.from(group.querySelectorAll('.mode-btn')).forEach(function(b){ b.classList.remove('active'); });
+        modeBtn.classList.add('active');
+      }
+
+      // Toggle present/absent status for a student
+      if (e.target.closest('.toggle-present')) {
+        var row = e.target.closest('tr');
+        var pill = row.querySelector('.status-pill');
+        if (pill.classList.contains('status-present')) {
+          pill.classList.remove('status-present');
+          pill.classList.add('status-absent');
+          pill.textContent = 'Absent';
+        } else {
+          pill.classList.remove('status-absent');
+          pill.classList.add('status-present');
+          pill.textContent = 'Present';
+        }
+      }
+
+      // Select class from sidebar
+      var tab = e.target.closest('.class-tab');
+      if (tab && tab.dataset.class) {
+        Array.from(document.querySelectorAll('.class-tab')).forEach(function(t){ t.classList.remove('active'); });
+        tab.classList.add('active');
+        // update title (simple demo)
+        var title = document.querySelector('.class-title');
+        title.textContent = tab.dataset.class + ' ';
+        var count = document.querySelector('.class-title .count');
+        if (!count) {
+          var span = document.createElement('span');
+          span.className = 'count';
+          span.textContent = '• Today';
+          title.appendChild(span);
+        } else {
+          // ensure count remains
+        }
+      }
+    });
+
+    // Add class button (demo)
+    document.getElementById('addClass').addEventListener('click', function(){
+      var name = document.getElementById('newClass').value.trim();
+      if (!name) return alert('Enter a class name');
+      var li = document.createElement('li');
+      li.className = 'class-tab';
+      li.setAttribute('data-class', name);
+      li.innerHTML = name + ' <button class="del" title="Delete">✕</button>';
+      document.getElementById('classList').insertBefore(li, document.querySelector('.add-row'));
+      document.getElementById('newClass').value = '';
+    });
+  </script>
+</body>
+</html>
