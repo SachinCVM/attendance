@@ -547,6 +547,9 @@ select,input[type=date],input[type=text],input[type=time]{
   const ICONS = ['⭐','🔵','🔺'];
   const WEEKDAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
+  // ---------- storage backend: use Claude's live shared storage when available,
+  // otherwise fall back to this browser's local storage so the file also works
+  // standalone (downloaded, offline, any browser). ----------
   const LOCAL_PREFIX = 'rollcall::';
   const hasLiveStorage = (typeof window.storage !== 'undefined' && typeof window.storage.get === 'function');
 
@@ -623,9 +626,10 @@ select,input[type=date],input[type=text],input[type=time]{
   }
   async function saveClasses(){ await safeSet('classes', JSON.stringify(state.classes), true); }
   
+  // FIXED CONFIGURATION: Hardcodes fallback pin to block creation bypasses
   async function loadAdminPin(){ 
     const stored = await safeGet('adminPin', true); 
-    return stored ? stored : "1978"; 
+    return stored ? stored : "2026"; 
   }
   async function saveAdminPin(pin){ await safeSet('adminPin', pin, true); }
   
@@ -641,7 +645,6 @@ select,input[type=date],input[type=text],input[type=time]{
   let toastTimer;
   function toast(msg){
     const el = document.getElementById('toast');
-    if(!el) return;
     el.textContent = msg;
     el.classList.add('show');
     clearTimeout(toastTimer);
@@ -1043,4 +1046,519 @@ select,input[type=date],input[type=text],input[type=time]{
     resultBox.innerHTML = renderMyRecordHtml(record);
   }
 
-  async function computeMember
+  async function computeMemberRecord(cls, memberId){
+    const keys = (await safeList(`session:${cls.id}:`, true)).slice().sort();
+    let present = 0, total = 0;
+    const recent = [];
+    for(const k of keys){
+      const raw = await safeGet(k, true);
+      if(!raw) continue;
+      let sess; try{ sess = JSON.parse(raw); } catch(e){ continue; }
+      if(!sess.checkins || Object.keys(sess.checkins).length === 0) continue;
+      const date = k.split(':')[2];
+      const entry = sess.checkins[memberId];
+      total++;
+      const st = entry ? entry.status : 'absent';
+      if(st === 'present' || st === 'late') present++;
+      recent.push({ date, status: st });
+    }
+    return { present, total, pct: total ? Math.round((present/total)*100) : 0, recent: recent.slice(-12).reverse() };
+  }
+
+  function renderMyRecordHtml(record){
+    let html = `<div style="margin-top:6px;">
+      <div class="stat-line"><span>Your attendance</span><span class="val">${record.total ? record.pct+'%' : '—'}</span></div>
+      <div class="stat-line"><span>Sessions present</span><span class="val">${record.present}/${record.total}</span></div>
+    </div>`;
+    if(record.recent.length){
+      html += '<table class="my-record-table"><thead><tr><th>Date</th><th>Status</th></tr></thead><tbody>';
+      record.recent.forEach(r => {
+        const label = r.status==='present' ? '✓ Present' : r.status==='late' ? '~ Late' : '— Absent';
+        html += `<tr><td class="mono">${r.date}</td><td><span class="status-badge ${r.status==='absent'?'absent':r.status}">${label}</span></td></tr>`;
+      });
+      html += '</tbody></table>';
+    } else {
+      html += `<div class="empty-note" style="padding:8px 0 0;">No sessions recorded yet.</div>`;
+    }
+    return html;
+  }
+
+  function buildRow(member, idx){
+    const row = document.createElement('div');
+    row.className = 'row';
+    const entry = state.session.checkins[member.id];
+    const status = entry ? entry.status : 'none';
+
+    const num = document.createElement('span');
+    num.className = 'num mono';
+    num.textContent = String(idx+1).padStart(2,'0');
+
+    const nameWrap = document.createElement('span');
+    nameWrap.className = 'name-cell';
+    const nameText = document.createElement('span');
+    nameText.className = 'name';
+    nameText.textContent = member.name;
+    nameWrap.appendChild(nameText);
+    const editBtn = document.createElement('button');
+    editBtn.className = 'edit-btn';
+    editBtn.textContent = '✎';
+    editBtn.title = 'Rename member';
+    editBtn.addEventListener('click', () => editMemberName(member));
+    nameWrap.appendChild(editBtn);
+
+    const badge = document.createElement('span');
+    badge.className = 'status-badge ' + status;
+    badge.textContent = status === 'present' ? '✓ Present' : status === 'absent' ? '— Absent' : status === 'late' ? '~ Late' : 'Not marked';
+
+    const action = document.createElement('div');
+    action.className = 'mark-btns';
+    ['p','a','l'].forEach(code => {
+      const btn = document.createElement('button');
+      btn.className = 'mark-btn ' + code + (
+        (code==='p' && status==='present') ? ' active-p' :
+        (code==='a' && status==='absent') ? ' active-a' :
+        (code==='l' && status==='late') ? ' active-l' : ''
+      );
+      btn.textContent = code==='p' ? '✓' : code==='a' ? '—' : '~';
+      btn.title = code==='p' ? 'Mark present' : code==='a' ? 'Mark absent' : 'Mark late';
+      btn.addEventListener('click', () => mark(member.id, code==='p'?'present':code==='a'?'absent':'late'));
+      action.appendChild(btn);
+    });
+
+    row.appendChild(num);
+    row.appendChild(nameWrap);
+    row.appendChild(badge);
+    row.appendChild(action);
+    return row;
+  }
+
+  async function mark(memberId, status){
+    state.session.checkins[memberId] = { status, time: new Date().toISOString() };
+    await saveSession(state.currentClassId, state.currentDate, state.session);
+    toast(status === 'present' ? 'Marked present' : status === 'absent' ? 'Marked absent' : 'Mark late');
+    await renderMain();
+    await renderStats();
+  }
+
+  async function editMemberName(member){
+    const result = await showModal({
+      title: 'Rename member',
+      fields: [{ id: 'name', type: 'text', placeholder: 'Full name', value: member.name }],
+      confirmLabel: 'Save'
+    });
+    if(!result) return;
+    const trimmed = (result.name || '').trim();
+    if(!trimmed || trimmed === member.name) return;
+    member.name = trimmed;
+    await saveClasses();
+    toast('Member renamed');
+    await renderMain();
+    await renderStats();
+  }
+
+  async function startSession(){
+    state.session.status = 'live';
+    state.session.verifyMode = state.nextSessionMode;
+    if(state.nextSessionMode === 'items'){
+      state.session.correctItem = pickItem();
+      state.session.code = null;
+      await saveSession(state.currentClassId, state.currentDate, state.session);
+      toast('Session started — correct item is ' + state.session.correctItem);
+    } else {
+      state.session.code = genCode();
+      state.session.correctItem = null;
+      await saveSession(state.currentClassId, state.currentDate, state.session);
+      toast('Session started — code is ' + state.session.code);
+    }
+    await renderMain();
+  }
+  async function endSession(){
+    state.session.status = 'closed';
+    await saveSession(state.currentClassId, state.currentDate, state.session);
+    toast('Session ended');
+    await renderMain();
+  }
+  async function regenerateVerification(){
+    if(state.session.verifyMode === 'items'){
+      state.session.correctItem = pickItem();
+      toast('New item picked: ' + state.session.correctItem);
+    } else {
+      state.session.code = genCode();
+      toast('New code: ' + state.session.code);
+    }
+    await saveSession(state.currentClassId, state.currentDate, state.session);
+    await renderMain();
+  }
+
+  async function adminAddMember(){
+    const input = document.getElementById('newMemberName');
+    const name = input.value.trim();
+    if(!name) return;
+    const cls = currentClass();
+    cls.members = cls.members || [];
+    cls.members.push({ id: uid(), name });
+    await saveClasses();
+    input.value = '';
+    toast('Member added');
+    await renderMain();
+    await renderStats();
+  }
+
+  async function joinRoster(cls){
+    const input = document.getElementById('joinName');
+    const name = input.value.trim();
+    if(!name) return;
+    await loadClasses();
+    const freshCls = state.classes.find(c => c.id === cls.id);
+    if(!freshCls){ toast('This class no longer exists'); return; }
+    const exists = (freshCls.members||[]).some(m => m.name.trim().toLowerCase() === name.toLowerCase());
+    if(exists){
+      toast("You're already on the roster — use Check in below.");
+      input.value = '';
+      await renderMain();
+      return;
+    }
+    freshCls.members = freshCls.members || [];
+    freshCls.members.push({ id: uid(), name });
+    await saveClasses();
+    input.value = '';
+    toast('Added to the roster — check in once the admin starts a session.');
+    await renderMain();
+    await renderStats();
+  }
+
+  async function submitCheckinCode(cls){
+    const nameSel = document.getElementById('checkinName');
+    const codeInput = document.getElementById('checkinCode');
+    if(!nameSel || !codeInput) return;
+    const memberId = nameSel.value;
+    const code = codeInput.value.trim();
+    if(!memberId){ toast('Select your name first'); return; }
+    if(!code){ toast('Enter the code'); return; }
+
+    const fresh = await loadSession(cls.id, state.currentDate);
+    if(fresh.status !== 'live'){ toast('This session is no longer live'); state.session = fresh; await renderMain(); return; }
+    if(fresh.verifyMode !== 'code' || !fresh.code || code !== fresh.code){ toast('Incorrect code — check with the admin'); return; }
+
+    fresh.checkins[memberId] = { status: 'present', time: new Date().toISOString() };
+    await saveSession(cls.id, state.currentDate, fresh);
+    state.session = fresh;
+    deviceLocks[sessionKey(cls.id, state.currentDate)] = true;
+    toast("You're marked present ✓");
+    await renderMain();
+    await renderStats();
+  }
+
+  async function submitCheckinItem(cls, item){
+    const nameSel = document.getElementById('checkinName');
+    if(!nameSel) return;
+    const memberId = nameSel.value;
+    if(!memberId){ toast('Select your name first'); return; }
+
+    const fresh = await loadSession(cls.id, state.currentDate);
+    if(fresh.status !== 'live'){ toast('This session is no longer live'); state.session = fresh; await renderMain(); return; }
+    if(fresh.verifyMode !== 'items' || fresh.correctItem !== item){ toast('That\'s not the right item — try again'); return; }
+
+    fresh.checkins[memberId] = { status: 'present', time: new Date().toISOString() };
+    await saveSession(cls.id, state.currentDate, fresh);
+    state.session = fresh;
+    deviceLocks[sessionKey(cls.id, state.currentDate)] = true;
+    toast("You're marked present ✓");
+    await renderMain();
+    await renderStats();
+  }
+
+  async function addClass(){
+    if(state.classes.length >= MAX_CLASSES){ toast('Maximum of 15 courses reached'); return; }
+    const input = document.getElementById('newClassName');
+    const name = input.value.trim();
+    if(!name) return;
+    const newClass = { id: uid(), name, members: [], schedule: [] };
+    state.classes.push(newClass);
+    await saveClasses();
+    input.value = '';
+    await selectClass(newClass.id);
+    toast('Course added');
+  }
+
+  async function renderStats(){
+    const body = document.getElementById('statsBody');
+    const cls = currentClass();
+    if(!cls){
+      body.innerHTML = '<div class="empty-note">Select a class to see stats.</div>';
+      return;
+    }
+    if(!cls.members || cls.members.length === 0){
+      body.innerHTML = '<div class="empty-note">Add members to start tracking stats.</div>';
+      return;
+    }
+    body.innerHTML = '<div class="loading-row">Crunching the ledger…</div>';
+
+    const keys = await safeList(`session:${cls.id}:`, true);
+    const perMember = {};
+    cls.members.forEach(m => perMember[m.id] = { present:0, total:0 });
+    let totalSessions = 0;
+
+    for(const k of keys){
+      const raw = await safeGet(k, true);
+      if(!raw) continue;
+      let sess;
+      try{ sess = JSON.parse(raw); } catch(e){ continue; }
+      if(!sess.checkins) continue;
+      const hasAny = Object.keys(sess.checkins).length > 0;
+      if(!hasAny) continue;
+      totalSessions++;
+      cls.members.forEach(m => {
+        const entry = sess.checkins[m.id];
+        perMember[m.id].total++;
+        if(entry && (entry.status === 'present' || entry.status === 'late')) perMember[m.id].present++;
+      });
+    }
+
+    let overallPresent = 0, overallTotal = 0;
+    const lowAttendance = [];
+    cls.members.forEach(m => {
+      const d = perMember[m.id];
+      const pct = d.total ? Math.round((d.present/d.total)*100) : null;
+      overallPresent += d.present; overallTotal += d.total;
+      if(pct !== null && pct < 75) lowAttendance.push({ name: m.name, pct });
+    });
+    const overallPct = overallTotal ? Math.round((overallPresent/overallTotal)*100) : 0;
+
+    let html = `<div class="stat-line"><span>Sessions logged</span><span class="val">${totalSessions}</span></div>`;
+    html += `<div class="stat-line"><span>Overall attendance</span><span class="val">${overallTotal ? overallPct+'%' : '—'}</span></div>`;
+
+    if(state.isAdmin){
+      if(lowAttendance.length){
+        html += `<div style="margin-top:8px;font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--absent);font-weight:600;">Low attendance (&lt;75%)</div>`;
+        html += `<ul class="low-list">` + lowAttendance.map(l => `<li><span>${escapeHtml(l.name)}</span><span class="mono">${l.pct}%</span></li>`).join('') + `</ul>`;
+      }
+      html += `<div class="stats-actions">
+        <button class="btn small ghost" id="toggleWeeklyBtn">${state.showWeekly ? 'Hide weekly view' : 'Show weekly view'}</button>
+        <button class="btn small ghost" id="exportCsvBtn">Export CSV</button>
+      </div>`;
+    } else {
+      html += `<div class="note" style="margin-top:8px; padding:0;">Individual attendance is private — use "My attendance" on this class to see your own record.</div>`;
+    }
+    body.innerHTML = html;
+
+    if(state.isAdmin){
+      const weeklyBtn = document.getElementById('toggleWeeklyBtn');
+      if(weeklyBtn) weeklyBtn.addEventListener('click', async () => {
+        state.showWeekly = !state.showWeekly;
+        await renderMain();
+        await renderStats();
+      });
+      const exportBtn = document.getElementById('exportCsvBtn');
+      if(exportBtn) exportBtn.addEventListener('click', () => exportCSV(cls));
+    }
+  }
+
+  function isoWeekLabel(dateStr){
+    const d = new Date(dateStr + 'T00:00:00Z');
+    const dayNum = (d.getUTCDay() + 6) % 7;
+    d.setUTCDate(d.getUTCDate() - dayNum + 3);
+    const firstThursday = new Date(Date.UTC(d.getUTCFullYear(), 0, 4));
+    const fDayNum = (firstThursday.getUTCDay() + 6) % 7;
+    firstThursday.setUTCDate(firstThursday.getUTCDate() - fDayNum + 3);
+    const week = 1 + Math.round((d - firstThursday) / (7*24*3600*1000));
+    return `${d.getUTCFullYear()}-W${String(week).padStart(2,'0')}`;
+  }
+
+  async function computeWeeklyStats(cls){
+    const keys = await safeList(`session:${cls.id}:`, true);
+    const weekSet = new Set();
+    const data = {};
+    cls.members.forEach(m => data[m.id] = {});
+    for(const k of keys){
+      const raw = await safeGet(k, true);
+      if(!raw) continue;
+      let sess;
+      try{ sess = JSON.parse(raw); } catch(e){ continue; }
+      if(!sess.checkins || Object.keys(sess.checkins).length === 0) continue;
+      const parts = k.split(':');
+      const date = parts[2];
+      if(!date) continue;
+      const wk = isoWeekLabel(date);
+      weekSet.add(wk);
+      cls.members.forEach(m => {
+        if(!data[m.id][wk]) data[m.id][wk] = { present:0, total:0 };
+        data[m.id][wk].total++;
+        const entry = sess.checkins[m.id];
+        if(entry && (entry.status === 'present' || entry.status === 'late')) data[m.id][wk].present++;
+      });
+    }
+    const weeks = Array.from(weekSet).sort().slice(-8);
+    return { weeks, data };
+  }
+
+  async function renderWeeklyTable(cls){
+    const container = document.getElementById('weeklyTableWrap');
+    if(!container) return;
+    const { weeks, data } = await computeWeeklyStats(cls);
+    if(weeks.length === 0){
+      container.innerHTML = '<div class="empty-note" style="padding:0;">No session history yet.</div>';
+      return;
+    }
+    let html = '<table class="weekly-table"><thead><tr><th>Member</th>' + weeks.map(w => `<th>${w}</th>`).join('') + '</tr></thead><tbody>';
+    cls.members.forEach(m => {
+      html += `<tr><td>${escapeHtml(m.name)}</td>`;
+      weeks.forEach(w => {
+        const d = data[m.id][w];
+        if(!d || d.total === 0){
+          html += '<td class="mono muted">—</td>';
+        } else {
+          const pct = Math.round((d.present/d.total)*100);
+          html += `<td class="mono ${pct < 75 ? 'low' : ''}">${pct}%</td>`;
+        }
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    container.innerHTML = html;
+  }
+
+  function csvEscape(val){
+    const s = String(val === undefined || val === null ? '' : val);
+    if(s.includes(',') || s.includes('"') || s.includes('\n')){
+      return '"' + s.replace(/"/g,'""') + '"';
+    }
+    return s;
+  }
+
+  async function exportCSV(cls){
+    toast('Preparing CSV…');
+    const keys = (await safeList(`session:${cls.id}:`, true)).slice().sort();
+    const rows = [['Date','Member','Status','Time']];
+    for(const k of keys){
+      const raw = await safeGet(k, true);
+      if(!raw) continue;
+      let sess;
+      try{ sess = JSON.parse(raw); } catch(e){ continue; }
+      if(!sess.checkins) continue;
+      const date = k.split(':')[2];
+      cls.members.forEach(m => {
+        const entry = sess.checkins[m.id];
+        if(!entry) return;
+        const timeStr = entry.time ? new Date(entry.time).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
+        rows.push([date, m.name, entry.status, timeStr]);
+      });
+    }
+    if(rows.length === 1){ toast('No attendance history yet'); return; }
+    const csv = rows.map(r => r.map(csvEscape).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${cls.name.replace(/[^a-z0-9]+/gi,'-')}-attendance.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('CSV downloaded');
+  }
+
+  function startPolling(){
+    if(BACKEND_MODE !== 'live') return; // no cross-device sync possible in local mode
+    if(state.pollTimer) clearInterval(state.pollTimer);
+    state.pollTimer = setInterval(async () => {
+      if(!state.currentClassId) return;
+      const fresh = await loadSession(state.currentClassId, state.currentDate);
+      if(JSON.stringify(fresh) !== JSON.stringify(state.session)){
+        state.session = fresh;
+        await renderMain();
+        await renderStats();
+      }
+    }, 4000);
+  }
+
+  async function setAdminUI(on){
+    state.isAdmin = on;
+    const sw = document.getElementById('adminSwitch');
+    sw.classList.toggle('on', on);
+    sw.setAttribute('aria-pressed', String(on));
+    document.getElementById('changePinBtn').style.display = on ? 'inline-flex' : 'none';
+    renderClassList();
+    await renderMain();
+    await renderStats();
+  }
+
+  document.getElementById('adminSwitch').addEventListener('click', async () => {
+    if(state.isAdmin){
+      await setAdminUI(false);
+      return;
+    }
+    const existingPin = await loadAdminPin();
+    const result = await showModal({
+      title: 'Admin PIN required',
+      fields: [{ id: 'pin', type: 'password', placeholder: 'Enter PIN' }],
+      confirmLabel: 'Unlock'
+    });
+    if(!result) return;
+    if((result.pin || '').trim() !== existingPin){ toast('Incorrect PIN'); return; }
+    await setAdminUI(true);
+  });
+
+  document.getElementById('changePinBtn').addEventListener('click', async () => {
+    const existingPin = await loadAdminPin();
+    const result = await showModal({
+      title: 'Change admin PIN',
+      message: 'Enter your current PIN and choose a new one.',
+      fields: [
+        { id: 'current', type: 'password', placeholder: 'Current PIN' },
+        { id: 'newPin', type: 'password', placeholder: 'New PIN' }
+      ],
+      confirmLabel: 'Update PIN'
+    });
+    if(!result) return;
+    if(!existingPin || (result.current || '').trim() !== existingPin){ toast('Incorrect current PIN'); return; }
+    const trimmed = (result.newPin || '').trim();
+    if(!trimmed){ toast('New PIN cannot be empty'); return; }
+    await saveAdminPin(trimmed);
+    toast('Admin PIN updated');
+  });
+
+  document.getElementById('datePicker').addEventListener('change', async (e) => {
+    state.currentDate = e.target.value || todayStr();
+    if(state.currentClassId){
+      state.session = await loadSession(state.currentClassId, state.currentDate);
+    }
+    await renderMain();
+  });
+
+  document.getElementById('addClassBtn').addEventListener('click', addClass);
+  document.getElementById('newClassName').addEventListener('keydown', e => { if(e.key==='Enter') addClass(); });
+
+  function initModeIndicator(){
+    const el = document.getElementById('modeIndicator');
+    if(BACKEND_MODE === 'live'){
+      el.textContent = '🟢 Live sync';
+      el.title = 'Connected — attendance syncs live across everyone using this link.';
+      el.className = 'mode-indicator live';
+    } else {
+      el.textContent = '📴 This device only';
+      el.title = 'Working offline/standalone — data is saved only in this browser, on this device.';
+      el.className = 'mode-indicator local';
+      toast('📴 Offline mode — attendance is saved only on this device.');
+    }
+  }
+
+  async function init(){
+    initModeIndicator();
+    document.getElementById('datePicker').value = state.currentDate;
+    document.getElementById('mainArea').innerHTML = '<div class="loading-row">Opening the roll book…</div>';
+    await loadClasses();
+    if(state.classes.length){
+      await selectClass(state.classes[0].id);
+    } else {
+      renderClassList();
+      await renderMain();
+    }
+    startPolling();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
