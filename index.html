@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Roll Call — Class Attendance</title>
+<title>Sachin Maths — Class Attendance</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Special+Elite&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
@@ -47,7 +48,7 @@ button{cursor:pointer;}
 :focus-visible{outline:2.5px solid var(--focus); outline-offset:2px;}
 
 #app{
-  max-width:1180px;
+  max-width:1220px;
   margin:0 auto;
   padding:20px 20px 60px;
 }
@@ -111,7 +112,7 @@ button{cursor:pointer;}
 .mode-indicator.local{ border-color:var(--gold-dark); color:var(--gold-dark); }
 .field{display:flex;flex-direction:column;gap:3px;}
 .field label{font-size:10px;text-transform:uppercase;letter-spacing:0.6px;color:var(--ink-soft);}
-select,input[type=date],input[type=text],input[type=time]{
+select,input[type=date],input[type=text],input[type=time],input[type=tel],input[type=password]{
   border:1.5px solid var(--ink);
   background:var(--card);
   color:var(--ink);
@@ -197,6 +198,8 @@ select,input[type=date],input[type=text],input[type=time]{
 }
 .add-row input{flex:1;min-width:0;font-size:12.5px;padding:6px 8px;}
 .cap-note{padding:8px 12px; font-size:11.5px; color:var(--ink-soft); border-top:1px solid var(--paper-line);}
+.export-all-row{padding:8px 12px; border-top:1px solid var(--paper-line);}
+.export-all-row .btn{width:100%;}
 .btn{
   border:1.5px solid var(--ink);
   background:var(--ink);
@@ -303,8 +306,8 @@ select,input[type=date],input[type=text],input[type=time]{
 
 .member-panels{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
 @media (max-width:640px){ .member-panels{grid-template-columns:1fr;} }
-.join-panel .panel-head, .checkin-panel .panel-head{padding:10px 14px 8px;}
-.join-body, .checkin-body{
+.join-panel .panel-head, .checkin-panel .panel-head, .my-attendance-panel .panel-head{padding:10px 14px 8px;}
+.join-body, .checkin-body, .my-attendance-body{
   padding:14px; display:flex; flex-direction:column; gap:8px;
 }
 .join-body input, .checkin-body input, .checkin-body select{width:100%;}
@@ -326,8 +329,7 @@ select,input[type=date],input[type=text],input[type=time]{
 .item-btn:hover{background:var(--paper-dark); transform:translateY(-1px);}
 .item-btn:active{transform:translateY(1px);}
 
-.my-attendance-panel .panel-head{padding:10px 14px 8px;}
-.my-attendance-body{padding:14px; display:flex; flex-direction:column; gap:8px;}
+.my-attendance-panel{border-color:var(--gold-dark);}
 .my-record-table{width:100%; border-collapse:collapse; font-size:12.5px; margin-top:8px;}
 .my-record-table th, .my-record-table td{padding:6px 8px; border-bottom:1px solid var(--paper-line); text-align:left;}
 .my-record-table thead th{font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px; color:var(--ink-soft);}
@@ -355,7 +357,7 @@ select,input[type=date],input[type=text],input[type=time]{
 }
 .ledger-head-row{
   display:grid;
-  grid-template-columns:34px 1fr 130px 150px;
+  grid-template-columns:34px 1fr 140px 110px 150px;
   gap:8px;
   padding:10px 14px 10px 8px;
   font-size:10.5px;
@@ -368,11 +370,11 @@ select,input[type=date],input[type=text],input[type=time]{
 }
 .row{
   display:grid;
-  grid-template-columns:34px 1fr 130px 150px;
+  grid-template-columns:34px 1fr 140px 110px 150px;
   gap:8px;
   align-items:center;
-  padding:0 14px 0 8px;
-  height:46px;
+  padding:8px 14px 8px 8px;
+  min-height:46px;
 }
 .row .num{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--gold-dark); font-weight:600;}
 .name-cell{display:flex;align-items:center;gap:6px;}
@@ -382,6 +384,9 @@ select,input[type=date],input[type=text],input[type=time]{
   font-size:12px;padding:2px 5px;border-radius:3px;line-height:1;
 }
 .edit-btn:hover{color:var(--ink); background:var(--paper-dark);}
+.device-cell{display:flex; flex-direction:column; gap:3px;}
+.device-status-line{display:flex; align-items:center; gap:5px;}
+.device-status-line .note{padding:0;}
 .row .status-badge{
   font-family:'IBM Plex Mono',monospace;
   font-size:12px;
@@ -413,8 +418,8 @@ select,input[type=date],input[type=text],input[type=time]{
 .mark-btn.active-l{background:var(--late);color:#fff;border-color:var(--late);}
 .mark-btn:hover{opacity:0.8;}
 
-.roster-actions{padding:10px 14px; border-top:1px solid var(--paper-line); display:flex; gap:8px;}
-.roster-actions input{flex:1; min-width:0;}
+.roster-actions{padding:10px 14px; border-top:1px solid var(--paper-line); display:flex; gap:8px; flex-wrap:wrap;}
+.roster-actions input{flex:1; min-width:120px;}
 
 .empty-state{
   padding:48px 24px;
@@ -473,9 +478,9 @@ select,input[type=date],input[type=text],input[type=time]{
 
   <div class="header">
     <div class="brand">
-      <div class="mark display">R·C</div>
+      <div class="mark display">S·M</div>
       <div>
-        <h1>Roll Call</h1>
+        <h1>Sachin Maths</h1>
         <div class="sub">Class attendance register</div>
       </div>
     </div>
@@ -503,6 +508,9 @@ select,input[type=date],input[type=text],input[type=time]{
           <button class="btn small" id="addClassBtn">Add</button>
         </div>
         <div class="cap-note" id="capNote" style="display:none;">Maximum of 15 courses reached.</div>
+        <div class="export-all-row" id="exportAllRow" style="display:none;">
+          <button class="btn small ghost" id="exportAllBtn">📊 Export All Courses (Excel)</button>
+        </div>
       </div>
 
       <div class="panel">
@@ -513,7 +521,7 @@ select,input[type=date],input[type=text],input[type=time]{
       </div>
 
       <div class="note" id="modeNote">
-        <strong>Note:</strong> only admins see everyone's attendance. Members can check themselves in and privately view their own record only.
+        <strong>Note:</strong> only admins see everyone's attendance. Each student's device shows only their own name and record.
       </div>
     </div>
 
@@ -546,10 +554,8 @@ select,input[type=date],input[type=text],input[type=time]{
   const MAX_CLASSES = 15;
   const ICONS = ['⭐','🔵','🔺'];
   const WEEKDAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const DEFAULT_PIN = '1976';
 
-  // ---------- storage backend: use Claude's live shared storage when available,
-  // otherwise fall back to this browser's local storage so the file also works
-  // standalone (downloaded, offline, any browser). ----------
   const LOCAL_PREFIX = 'rollcall::';
   const hasLiveStorage = (typeof window.storage !== 'undefined' && typeof window.storage.get === 'function');
 
@@ -593,16 +599,31 @@ select,input[type=date],input[type=text],input[type=time]{
     showWeekly: false,
     editingSchedule: false,
     nextSessionMode: 'code',
-    myRecordMemberId: null
+    deviceId: null
   };
-
-  const deviceLocks = {};
 
   function todayStr(){
     const d = new Date();
     const off = d.getTimezoneOffset();
     const local = new Date(d.getTime() - off*60000);
     return local.toISOString().slice(0,10);
+  }
+
+  // this device's own identity — kept in THIS browser's local storage only,
+  // never synced. Falls back to an in-memory id (won't survive reload) if
+  // local storage isn't available in this environment.
+  function getDeviceId(){
+    try{
+      let id = window.localStorage.getItem('sm_device_id');
+      if(!id){
+        id = 'dev_' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+        window.localStorage.setItem('sm_device_id', id);
+      }
+      return id;
+    }catch(e){
+      if(!window.__tempDeviceId) window.__tempDeviceId = 'tmp_' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+      return window.__tempDeviceId;
+    }
   }
 
   async function safeGet(key, shared){
@@ -625,14 +646,9 @@ select,input[type=date],input[type=text],input[type=time]{
     state.classes = raw ? JSON.parse(raw) : [];
   }
   async function saveClasses(){ await safeSet('classes', JSON.stringify(state.classes), true); }
-  
-  // FIXED CONFIGURATION: Hardcodes fallback pin to block creation bypasses
-  async function loadAdminPin(){ 
-    const stored = await safeGet('adminPin', true); 
-    return stored ? stored : "2026"; 
-  }
+  async function loadAdminPin(){ return await safeGet('adminPin', true); }
   async function saveAdminPin(pin){ await safeSet('adminPin', pin, true); }
-  
+
   async function loadSession(classId, date){
     if(!classId) return { status:'none', checkins:{}, code:null, verifyMode:'code', correctItem:null };
     const raw = await safeGet(sessionKey(classId,date), true);
@@ -648,7 +664,7 @@ select,input[type=date],input[type=text],input[type=time]{
     el.textContent = msg;
     el.classList.add('show');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(()=> el.classList.remove('show'), 2400);
+    toastTimer = setTimeout(()=> el.classList.remove('show'), 2600);
   }
 
   function escapeHtml(s){
@@ -765,6 +781,7 @@ select,input[type=date],input[type=text],input[type=time]{
     const atCap = state.classes.length >= MAX_CLASSES;
     document.getElementById('addClassRow').style.display = (state.isAdmin && !atCap) ? 'flex' : 'none';
     document.getElementById('capNote').style.display = (state.isAdmin && atCap) ? 'block' : 'none';
+    document.getElementById('exportAllRow').style.display = (state.isAdmin && state.classes.length > 0) ? 'block' : 'none';
   }
 
   async function selectClass(id){
@@ -772,7 +789,6 @@ select,input[type=date],input[type=text],input[type=time]{
     state.session = await loadSession(id, state.currentDate);
     state.showWeekly = false;
     state.editingSchedule = false;
-    state.myRecordMemberId = null;
     renderClassList();
     await renderMain();
     await renderStats();
@@ -809,6 +825,7 @@ select,input[type=date],input[type=text],input[type=time]{
     const members = cls.members || [];
     const presentCount = members.filter(m => (state.session.checkins[m.id]||{}).status === 'present' || (state.session.checkins[m.id]||{}).status === 'late').length;
     const pct = members.length ? Math.round((presentCount/members.length)*100) : 0;
+    const myMember = !state.isAdmin ? members.find(m => m.deviceId === state.deviceId) : null;
 
     let html = '';
     html += `<div class="toolbar">
@@ -832,7 +849,8 @@ select,input[type=date],input[type=text],input[type=time]{
                       <button class="mode-btn ${state.nextSessionMode==='code'?'active':''}" id="modeCodeBtn" type="button">Numeric code</button>
                       <button class="mode-btn ${state.nextSessionMode==='items'?'active':''}" id="modeItemsBtn" type="button">Pick the item</button>
                     </div>
-                    <button class="btn green small" id="startSessionBtn">Start today's session</button>`)
+                    <button class="btn green small" id="startSessionBtn">Open session</button>
+                    <button class="btn ghost small" id="genCodeBtn" style="display:none;">Generate code</button>`)
               : `<span class="note">Sessions can only be started for today.</span>`
           ) : ''}
         </div>
@@ -849,8 +867,11 @@ select,input[type=date],input[type=text],input[type=time]{
     }
 
     if(!state.isAdmin){
-      html += renderMemberPanels(cls, members, isToday, isLive);
-      html += renderMyAttendancePanel(members);
+      if(myMember){
+        html += renderPersonalDashboard(myMember, isToday, isLive);
+      } else {
+        html += renderRegisterOrLink(members);
+      }
     }
 
     if(state.isAdmin){
@@ -861,17 +882,19 @@ select,input[type=date],input[type=text],input[type=time]{
             Add your first member below to start taking attendance.
           </div>
           <div class="roster-actions">
-            <input type="text" id="newMemberName" placeholder="Add member name">
+            <input type="text" id="newMemberName" placeholder="Full name">
+            <input type="text" id="newMemberMobile" placeholder="Mobile (optional)">
             <button class="btn small" id="addMemberBtn">Add member</button>
           </div>
         </div>`;
       } else {
         html += `<div class="ledger"><div class="ledger-inner">
-          <div class="ledger-head-row"><span>#</span><span>Name</span><span>Status</span><span>Mark</span></div>
+          <div class="ledger-head-row"><span>#</span><span>Name</span><span>Device</span><span>Status</span><span>Mark</span></div>
           <div id="rosterRows"></div>
         </div>
         <div class="roster-actions">
-          <input type="text" id="newMemberName" placeholder="Add member name">
+          <input type="text" id="newMemberName" placeholder="Full name">
+          <input type="text" id="newMemberMobile" placeholder="Mobile (optional)">
           <button class="btn small" id="addMemberBtn">Add member</button>
         </div>
         </div>`;
@@ -895,6 +918,8 @@ select,input[type=date],input[type=text],input[type=time]{
     if(state.isAdmin){
       const startBtn = document.getElementById('startSessionBtn');
       if(startBtn) startBtn.addEventListener('click', startSession);
+      const genBtn = document.getElementById('genCodeBtn');
+      if(genBtn) genBtn.addEventListener('click', generateVerification);
       const endBtn = document.getElementById('endSessionBtn');
       if(endBtn) endBtn.addEventListener('click', endSession);
       const regenBtn = document.getElementById('regenBtn');
@@ -914,20 +939,22 @@ select,input[type=date],input[type=text],input[type=time]{
       if(cancelSchedBtn) cancelSchedBtn.addEventListener('click', () => { state.editingSchedule = false; renderMain(); });
       const saveSchedBtn = document.getElementById('saveScheduleBtn');
       if(saveSchedBtn) saveSchedBtn.addEventListener('click', () => saveSchedule(cls));
+    } else if(myMember){
+      const checkinBtn = document.getElementById('checkinBtn');
+      if(checkinBtn) checkinBtn.addEventListener('click', () => submitCheckinCode(cls, myMember.id));
+      const codeInput = document.getElementById('checkinCode');
+      if(codeInput) codeInput.addEventListener('keydown', e => { if(e.key==='Enter') submitCheckinCode(cls, myMember.id); });
+      document.querySelectorAll('.item-btn').forEach(btn => {
+        btn.addEventListener('click', () => submitCheckinItem(cls, myMember.id, btn.dataset.item));
+      });
+      await fillMyStats(cls, myMember);
     } else {
       const joinBtn = document.getElementById('joinBtn');
       if(joinBtn) joinBtn.addEventListener('click', () => joinRoster(cls));
-      const joinInput = document.getElementById('joinName');
-      if(joinInput) joinInput.addEventListener('keydown', e => { if(e.key==='Enter') joinRoster(cls); });
-      const checkinBtn = document.getElementById('checkinBtn');
-      if(checkinBtn) checkinBtn.addEventListener('click', () => submitCheckinCode(cls));
-      const codeInput = document.getElementById('checkinCode');
-      if(codeInput) codeInput.addEventListener('keydown', e => { if(e.key==='Enter') submitCheckinCode(cls); });
-      document.querySelectorAll('.item-btn').forEach(btn => {
-        btn.addEventListener('click', () => submitCheckinItem(cls, btn.dataset.item));
-      });
-      const viewRecordBtn = document.getElementById('viewMyRecordBtn');
-      if(viewRecordBtn) viewRecordBtn.addEventListener('click', () => viewMyRecord(cls));
+      const joinMobile = document.getElementById('joinMobile');
+      if(joinMobile) joinMobile.addEventListener('keydown', e => { if(e.key==='Enter') joinRoster(cls); });
+      const linkBtn = document.getElementById('linkDeviceBtn');
+      if(linkBtn) linkBtn.addEventListener('click', () => linkDevice(cls));
     }
 
     if(state.isAdmin && state.showWeekly && members.length){
@@ -980,70 +1007,84 @@ select,input[type=date],input[type=text],input[type=time]{
     });
   }
 
-  function renderMemberPanels(cls, members, isToday, isLive){
-    const key = sessionKey(cls.id, state.currentDate);
-    const locked = deviceLocks[key];
-    const options = members.map(m => `<option value="${m.id}" ${state.myRecordMemberId===m.id?'selected':''}>${escapeHtml(m.name)}</option>`).join('');
-
-    let checkinInner;
+  // ---------- student-facing views ----------
+  function renderPersonalDashboard(myMember, isToday, isLive){
+    let checkinBlock;
+    const already = !!state.session.checkins[myMember.id];
     if(!isToday){
-      checkinInner = `<div class="empty-note" style="padding:0;">Check-in only works for today's session.</div>`;
+      checkinBlock = `<div class="empty-note" style="padding:0;">Check-in only works for today's session.</div>`;
     } else if(!isLive){
-      checkinInner = `<div class="empty-note" style="padding:0;">Waiting for the admin to start today's session.</div>`;
-    } else if(locked){
-      checkinInner = `<div class="checkin-ok">✓ Checked in from this device. If this wasn't you, ask the admin.</div>`;
+      checkinBlock = `<div class="empty-note" style="padding:0;">Waiting for the admin to open today's session.</div>`;
+    } else if(already){
+      checkinBlock = `<div class="checkin-ok">✓ Your attendance is marked for today.</div>`;
     } else if(state.session.verifyMode === 'items'){
-      checkinInner = `
-        <select id="checkinName"><option value="">Select your name…</option>${options}</select>
-        <div class="item-picker">${ICONS.map(ic => `<button type="button" class="item-btn" data-item="${ic}">${ic}</button>`).join('')}</div>
+      checkinBlock = `<div class="item-picker">${ICONS.map(ic => `<button type="button" class="item-btn" data-item="${ic}">${ic}</button>`).join('')}</div>
         <div class="note">Tap the item the admin told you is correct for this session.</div>`;
     } else {
-      checkinInner = `
-        <select id="checkinName"><option value="">Select your name…</option>${options}</select>
+      checkinBlock = `
         <input type="text" id="checkinCode" placeholder="Enter today's code" maxlength="8" autocomplete="off">
         <button class="btn green" id="checkinBtn">✓ Mark me present</button>
-        <div class="note">Enter the code the admin shared out loud or in your group chat for this session only.</div>`;
+        <div class="note">Enter the code the admin shared for this session.</div>`;
     }
 
     return `<div class="member-panels">
-      <div class="panel join-panel">
-        <div class="panel-head">New here? Join this roster</div>
-        <div class="join-body">
-          <input type="text" id="joinName" placeholder="Your full name">
-          <button class="btn small" id="joinBtn">Join roster</button>
-          <div class="note">One-time only — once you're on the roster, use Check in whenever the admin starts a session.</div>
+      <div class="panel my-attendance-panel">
+        <div class="panel-head">Hello, ${escapeHtml(myMember.name)}</div>
+        <div class="my-attendance-body">
+          <div id="myStatsBox" class="loading-row">Loading your attendance…</div>
         </div>
       </div>
       <div class="panel checkin-panel">
-        <div class="panel-head">Check in</div>
-        <div class="checkin-body">${checkinInner}</div>
+        <div class="panel-head">Today's check-in</div>
+        <div class="checkin-body">${checkinBlock}</div>
       </div>
     </div>`;
   }
 
-  function renderMyAttendancePanel(members){
-    const options = members.map(m => `<option value="${m.id}" ${state.myRecordMemberId===m.id?'selected':''}>${escapeHtml(m.name)}</option>`).join('');
-    return `<div class="panel my-attendance-panel">
-      <div class="panel-head">My attendance (private)</div>
-      <div class="my-attendance-body">
-        ${members.length ? `
-          <select id="myRecordSelect"><option value="">Select your name…</option>${options}</select>
-          <button class="btn small" id="viewMyRecordBtn">View my record</button>
-          <div class="note">Only you see this when you look it up — no one else's attendance is shown here.</div>
-          <div id="myRecordResult"></div>
-        ` : `<div class="empty-note" style="padding:0;">Join the roster above first.</div>`}
+  function renderRegisterOrLink(members){
+    const unlinked = members.filter(m => !m.deviceId);
+    let linkBlock = '';
+    if(unlinked.length){
+      const options = unlinked.map(m => `<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('');
+      linkBlock = `<div class="panel join-panel">
+        <div class="panel-head">Already registered? Link this device</div>
+        <div class="join-body">
+          <select id="linkSelect"><option value="">Select your name…</option>${options}</select>
+          <input type="tel" id="linkMobile" placeholder="Confirm your mobile number">
+          <button class="btn small" id="linkDeviceBtn">Link this device</button>
+          <div class="note">If your old phone is lost, ask the admin to reset your device first.</div>
+        </div>
+      </div>`;
+    }
+    return `<div class="member-panels">
+      <div class="panel join-panel">
+        <div class="panel-head">New here? Register</div>
+        <div class="join-body">
+          <input type="text" id="joinName" placeholder="Your full name">
+          <input type="tel" id="joinMobile" placeholder="Mobile number">
+          <button class="btn small" id="joinBtn">Register this device</button>
+          <div class="note">One-time only — this device becomes your attendance device for this course.</div>
+        </div>
       </div>
+      ${linkBlock}
     </div>`;
   }
 
-  async function viewMyRecord(cls){
-    const sel = document.getElementById('myRecordSelect');
-    const resultBox = document.getElementById('myRecordResult');
-    if(!sel || !sel.value){ toast('Select your name first'); return; }
-    state.myRecordMemberId = sel.value;
-    resultBox.innerHTML = '<div class="loading-row">Looking up your record…</div>';
-    const record = await computeMemberRecord(cls, sel.value);
-    resultBox.innerHTML = renderMyRecordHtml(record);
+  async function fillMyStats(cls, member){
+    const box = document.getElementById('myStatsBox');
+    if(!box) return;
+    const record = await computeMemberRecord(cls, member.id);
+    let html = `<div class="stat-line"><span>Your attendance</span><span class="val">${record.total ? record.pct+'%' : '—'}</span></div>
+      <div class="stat-line"><span>Sessions present</span><span class="val">${record.present}/${record.total}</span></div>`;
+    if(record.recent.length){
+      html += '<table class="my-record-table"><thead><tr><th>Date</th><th>Status</th></tr></thead><tbody>';
+      record.recent.forEach(r => {
+        const label = r.status==='present' ? '✓ Present' : r.status==='late' ? '~ Late' : '— Absent';
+        html += `<tr><td class="mono">${r.date}</td><td><span class="status-badge ${r.status==='absent'?'absent':r.status}">${label}</span></td></tr>`;
+      });
+      html += '</tbody></table>';
+    }
+    box.innerHTML = html;
   }
 
   async function computeMemberRecord(cls, memberId){
@@ -1065,24 +1106,88 @@ select,input[type=date],input[type=text],input[type=time]{
     return { present, total, pct: total ? Math.round((present/total)*100) : 0, recent: recent.slice(-12).reverse() };
   }
 
-  function renderMyRecordHtml(record){
-    let html = `<div style="margin-top:6px;">
-      <div class="stat-line"><span>Your attendance</span><span class="val">${record.total ? record.pct+'%' : '—'}</span></div>
-      <div class="stat-line"><span>Sessions present</span><span class="val">${record.present}/${record.total}</span></div>
-    </div>`;
-    if(record.recent.length){
-      html += '<table class="my-record-table"><thead><tr><th>Date</th><th>Status</th></tr></thead><tbody>';
-      record.recent.forEach(r => {
-        const label = r.status==='present' ? '✓ Present' : r.status==='late' ? '~ Late' : '— Absent';
-        html += `<tr><td class="mono">${r.date}</td><td><span class="status-badge ${r.status==='absent'?'absent':r.status}">${label}</span></td></tr>`;
-      });
-      html += '</tbody></table>';
-    } else {
-      html += `<div class="empty-note" style="padding:8px 0 0;">No sessions recorded yet.</div>`;
+  async function joinRoster(cls){
+    const nameInput = document.getElementById('joinName');
+    const mobileInput = document.getElementById('joinMobile');
+    const name = nameInput.value.trim();
+    const mobile = mobileInput.value.trim();
+    if(!name){ toast('Enter your name'); return; }
+    if(!mobile){ toast('Enter your mobile number'); return; }
+    await loadClasses();
+    const freshCls = state.classes.find(c => c.id === cls.id);
+    if(!freshCls){ toast('This class no longer exists'); return; }
+    freshCls.members = freshCls.members || [];
+    const existing = freshCls.members.find(m => m.name.trim().toLowerCase() === name.toLowerCase() && (m.mobile||'') === mobile);
+    if(existing){
+      if(existing.deviceId){
+        toast('Already registered on another device — ask your admin to reset it if this is you.');
+        return;
+      }
+      existing.deviceId = state.deviceId;
+      await saveClasses();
+      toast('Welcome back — this device is now linked.');
+      await renderMain();
+      return;
     }
-    return html;
+    freshCls.members.push({ id: uid(), name, mobile, deviceId: state.deviceId });
+    await saveClasses();
+    toast('Registered! This device is now yours for check-ins.');
+    await renderMain();
+    await renderStats();
   }
 
+  async function linkDevice(cls){
+    const sel = document.getElementById('linkSelect');
+    const mobileInput = document.getElementById('linkMobile');
+    if(!sel || !sel.value){ toast('Select your name first'); return; }
+    await loadClasses();
+    const freshCls = state.classes.find(c => c.id === cls.id);
+    if(!freshCls){ toast('This class no longer exists'); return; }
+    const member = (freshCls.members||[]).find(m => m.id === sel.value);
+    if(!member){ toast('That entry no longer exists — refresh and try again'); return; }
+    if(member.deviceId){ toast('That name is already linked to a device'); return; }
+    if(member.mobile){
+      const entered = (mobileInput.value||'').trim();
+      if(entered !== member.mobile){ toast('Mobile number does not match our records'); return; }
+    }
+    member.deviceId = state.deviceId;
+    await saveClasses();
+    toast('Device linked — welcome back, ' + member.name);
+    await renderMain();
+    await renderStats();
+  }
+
+  async function submitCheckinCode(cls, memberId){
+    const codeInput = document.getElementById('checkinCode');
+    if(!codeInput) return;
+    const code = codeInput.value.trim();
+    if(!code){ toast('Enter the code'); return; }
+    const fresh = await loadSession(cls.id, state.currentDate);
+    if(fresh.status !== 'live'){ toast('This session is no longer live'); state.session = fresh; await renderMain(); return; }
+    if(fresh.verifyMode !== 'code' || !fresh.code || code !== fresh.code){ toast('Incorrect code — check with the admin'); return; }
+    if(fresh.checkins[memberId]){ toast('You are already marked for today'); state.session = fresh; await renderMain(); return; }
+    fresh.checkins[memberId] = { status: 'present', time: new Date().toISOString() };
+    await saveSession(cls.id, state.currentDate, fresh);
+    state.session = fresh;
+    toast('Your attendance is marked for today ✓');
+    await renderMain();
+    await renderStats();
+  }
+
+  async function submitCheckinItem(cls, memberId, item){
+    const fresh = await loadSession(cls.id, state.currentDate);
+    if(fresh.status !== 'live'){ toast('This session is no longer live'); state.session = fresh; await renderMain(); return; }
+    if(fresh.verifyMode !== 'items' || fresh.correctItem !== item){ toast('That\'s not the right item — try again'); return; }
+    if(fresh.checkins[memberId]){ toast('You are already marked for today'); state.session = fresh; await renderMain(); return; }
+    fresh.checkins[memberId] = { status: 'present', time: new Date().toISOString() };
+    await saveSession(cls.id, state.currentDate, fresh);
+    state.session = fresh;
+    toast('Your attendance is marked for today ✓');
+    await renderMain();
+    await renderStats();
+  }
+
+  // ---------- admin roster row ----------
   function buildRow(member, idx){
     const row = document.createElement('div');
     row.className = 'row';
@@ -1106,6 +1211,28 @@ select,input[type=date],input[type=text],input[type=time]{
     editBtn.addEventListener('click', () => editMemberName(member));
     nameWrap.appendChild(editBtn);
 
+    const deviceCell = document.createElement('div');
+    deviceCell.className = 'device-cell';
+    const mobileLine = document.createElement('span');
+    mobileLine.className = 'time';
+    mobileLine.textContent = member.mobile || 'no mobile on file';
+    deviceCell.appendChild(mobileLine);
+    const statusLine = document.createElement('div');
+    statusLine.className = 'device-status-line';
+    const statusText = document.createElement('span');
+    statusText.className = 'note';
+    statusText.textContent = member.deviceId ? '✓ Device linked' : 'Not registered';
+    statusLine.appendChild(statusText);
+    if(member.deviceId){
+      const resetBtn = document.createElement('button');
+      resetBtn.className = 'edit-btn';
+      resetBtn.textContent = '🔄';
+      resetBtn.title = 'Reset device (allow them to register a new one)';
+      resetBtn.addEventListener('click', () => resetMemberDevice(member));
+      statusLine.appendChild(resetBtn);
+    }
+    deviceCell.appendChild(statusLine);
+
     const badge = document.createElement('span');
     badge.className = 'status-badge ' + status;
     badge.textContent = status === 'present' ? '✓ Present' : status === 'absent' ? '— Absent' : status === 'late' ? '~ Late' : 'Not marked';
@@ -1127,15 +1254,29 @@ select,input[type=date],input[type=text],input[type=time]{
 
     row.appendChild(num);
     row.appendChild(nameWrap);
+    row.appendChild(deviceCell);
     row.appendChild(badge);
     row.appendChild(action);
     return row;
   }
 
+  async function resetMemberDevice(member){
+    const ok = await showConfirm({
+      title: "Reset this student's device?",
+      message: `${member.name} will need to register or link a new device. Use this only if their old phone is lost or unavailable.`,
+      confirmLabel: 'Reset device'
+    });
+    if(!ok) return;
+    member.deviceId = null;
+    await saveClasses();
+    toast('Device reset for ' + member.name);
+    await renderMain();
+  }
+
   async function mark(memberId, status){
     state.session.checkins[memberId] = { status, time: new Date().toISOString() };
     await saveSession(state.currentClassId, state.currentDate, state.session);
-    toast(status === 'present' ? 'Marked present' : status === 'absent' ? 'Marked absent' : 'Mark late');
+    toast(status === 'present' ? 'Marked present' : status === 'absent' ? 'Marked absent' : 'Marked late');
     await renderMain();
     await renderStats();
   }
@@ -1156,20 +1297,29 @@ select,input[type=date],input[type=text],input[type=time]{
     await renderStats();
   }
 
+  // ---------- sessions ----------
   async function startSession(){
     state.session.status = 'live';
     state.session.verifyMode = state.nextSessionMode;
+    state.session.code = null;
+    state.session.correctItem = null;
+    await saveSession(state.currentClassId, state.currentDate, state.session);
+    toast('Session opened — click "Generate code" when you want students to start checking in');
+    await renderMain();
+    const genBtn = document.getElementById('genCodeBtn');
+    if(genBtn) genBtn.style.display = 'inline-flex';
+  }
+  async function generateVerification(){
     if(state.nextSessionMode === 'items'){
       state.session.correctItem = pickItem();
       state.session.code = null;
-      await saveSession(state.currentClassId, state.currentDate, state.session);
-      toast('Session started — correct item is ' + state.session.correctItem);
+      toast('Correct item is ' + state.session.correctItem);
     } else {
       state.session.code = genCode();
       state.session.correctItem = null;
-      await saveSession(state.currentClassId, state.currentDate, state.session);
-      toast('Session started — code is ' + state.session.code);
+      toast('Code is ' + state.session.code);
     }
+    await saveSession(state.currentClassId, state.currentDate, state.session);
     await renderMain();
   }
   async function endSession(){
@@ -1191,79 +1341,18 @@ select,input[type=date],input[type=text],input[type=time]{
   }
 
   async function adminAddMember(){
-    const input = document.getElementById('newMemberName');
-    const name = input.value.trim();
+    const nameInput = document.getElementById('newMemberName');
+    const mobileInput = document.getElementById('newMemberMobile');
+    const name = nameInput.value.trim();
+    const mobile = (mobileInput.value || '').trim();
     if(!name) return;
     const cls = currentClass();
     cls.members = cls.members || [];
-    cls.members.push({ id: uid(), name });
+    cls.members.push({ id: uid(), name, mobile, deviceId: null });
     await saveClasses();
-    input.value = '';
-    toast('Member added');
-    await renderMain();
-    await renderStats();
-  }
-
-  async function joinRoster(cls){
-    const input = document.getElementById('joinName');
-    const name = input.value.trim();
-    if(!name) return;
-    await loadClasses();
-    const freshCls = state.classes.find(c => c.id === cls.id);
-    if(!freshCls){ toast('This class no longer exists'); return; }
-    const exists = (freshCls.members||[]).some(m => m.name.trim().toLowerCase() === name.toLowerCase());
-    if(exists){
-      toast("You're already on the roster — use Check in below.");
-      input.value = '';
-      await renderMain();
-      return;
-    }
-    freshCls.members = freshCls.members || [];
-    freshCls.members.push({ id: uid(), name });
-    await saveClasses();
-    input.value = '';
-    toast('Added to the roster — check in once the admin starts a session.');
-    await renderMain();
-    await renderStats();
-  }
-
-  async function submitCheckinCode(cls){
-    const nameSel = document.getElementById('checkinName');
-    const codeInput = document.getElementById('checkinCode');
-    if(!nameSel || !codeInput) return;
-    const memberId = nameSel.value;
-    const code = codeInput.value.trim();
-    if(!memberId){ toast('Select your name first'); return; }
-    if(!code){ toast('Enter the code'); return; }
-
-    const fresh = await loadSession(cls.id, state.currentDate);
-    if(fresh.status !== 'live'){ toast('This session is no longer live'); state.session = fresh; await renderMain(); return; }
-    if(fresh.verifyMode !== 'code' || !fresh.code || code !== fresh.code){ toast('Incorrect code — check with the admin'); return; }
-
-    fresh.checkins[memberId] = { status: 'present', time: new Date().toISOString() };
-    await saveSession(cls.id, state.currentDate, fresh);
-    state.session = fresh;
-    deviceLocks[sessionKey(cls.id, state.currentDate)] = true;
-    toast("You're marked present ✓");
-    await renderMain();
-    await renderStats();
-  }
-
-  async function submitCheckinItem(cls, item){
-    const nameSel = document.getElementById('checkinName');
-    if(!nameSel) return;
-    const memberId = nameSel.value;
-    if(!memberId){ toast('Select your name first'); return; }
-
-    const fresh = await loadSession(cls.id, state.currentDate);
-    if(fresh.status !== 'live'){ toast('This session is no longer live'); state.session = fresh; await renderMain(); return; }
-    if(fresh.verifyMode !== 'items' || fresh.correctItem !== item){ toast('That\'s not the right item — try again'); return; }
-
-    fresh.checkins[memberId] = { status: 'present', time: new Date().toISOString() };
-    await saveSession(cls.id, state.currentDate, fresh);
-    state.session = fresh;
-    deviceLocks[sessionKey(cls.id, state.currentDate)] = true;
-    toast("You're marked present ✓");
+    nameInput.value = '';
+    mobileInput.value = '';
+    toast('Member added — they can register or link their device when they open the link');
     await renderMain();
     await renderStats();
   }
@@ -1281,6 +1370,7 @@ select,input[type=date],input[type=text],input[type=time]{
     toast('Course added');
   }
 
+  // ---------- stats ----------
   async function renderStats(){
     const body = document.getElementById('statsBody');
     const cls = currentClass();
@@ -1335,10 +1425,10 @@ select,input[type=date],input[type=text],input[type=time]{
       }
       html += `<div class="stats-actions">
         <button class="btn small ghost" id="toggleWeeklyBtn">${state.showWeekly ? 'Hide weekly view' : 'Show weekly view'}</button>
-        <button class="btn small ghost" id="exportCsvBtn">Export CSV</button>
+        <button class="btn small ghost" id="exportCsvBtn">Export this course (CSV)</button>
       </div>`;
     } else {
-      html += `<div class="note" style="margin-top:8px; padding:0;">Individual attendance is private — use "My attendance" on this class to see your own record.</div>`;
+      html += `<div class="note" style="margin-top:8px; padding:0;">Your own attendance is shown above — no one else's record is visible to you.</div>`;
     }
     body.innerHTML = html;
 
@@ -1429,7 +1519,7 @@ select,input[type=date],input[type=text],input[type=time]{
   async function exportCSV(cls){
     toast('Preparing CSV…');
     const keys = (await safeList(`session:${cls.id}:`, true)).slice().sort();
-    const rows = [['Date','Member','Status','Time']];
+    const rows = [['Date','Member','Mobile','Status','Time']];
     for(const k of keys){
       const raw = await safeGet(k, true);
       if(!raw) continue;
@@ -1441,7 +1531,7 @@ select,input[type=date],input[type=text],input[type=time]{
         const entry = sess.checkins[m.id];
         if(!entry) return;
         const timeStr = entry.time ? new Date(entry.time).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
-        rows.push([date, m.name, entry.status, timeStr]);
+        rows.push([date, m.name, m.mobile||'', entry.status, timeStr]);
       });
     }
     if(rows.length === 1){ toast('No attendance history yet'); return; }
@@ -1458,8 +1548,56 @@ select,input[type=date],input[type=text],input[type=time]{
     toast('CSV downloaded');
   }
 
+  async function exportAllCoursesExcel(){
+    if(typeof XLSX === 'undefined'){
+      toast('Excel library failed to load — check your internet connection and try again');
+      return;
+    }
+    if(state.classes.length === 0){ toast('No courses to export yet'); return; }
+    toast('Building workbook…');
+    const wb = XLSX.utils.book_new();
+    const summaryRows = [['Course','Members','Sessions Logged','Overall %']];
+    const usedNames = [];
+
+    for(const cls of state.classes){
+      const keys = (await safeList(`session:${cls.id}:`, true)).slice().sort();
+      const sheetRows = [['Date','Member','Mobile','Status','Time']];
+      let totalSessions = 0, totalPresent = 0, totalSlots = 0;
+      for(const k of keys){
+        const raw = await safeGet(k, true);
+        if(!raw) continue;
+        let sess; try{ sess = JSON.parse(raw); } catch(e){ continue; }
+        if(!sess.checkins || Object.keys(sess.checkins).length === 0) continue;
+        totalSessions++;
+        const date = k.split(':')[2];
+        (cls.members||[]).forEach(m => {
+          const entry = sess.checkins[m.id];
+          totalSlots++;
+          if(entry && (entry.status === 'present' || entry.status === 'late')) totalPresent++;
+          if(entry){
+            const timeStr = entry.time ? new Date(entry.time).toLocaleString() : '';
+            sheetRows.push([date, m.name, m.mobile || '', entry.status, timeStr]);
+          }
+        });
+      }
+      let base = (cls.name || 'Course').replace(/[\\\/\?\*\[\]:]/g, '').trim().slice(0, 28) || 'Course';
+      let finalName = base, n = 1;
+      while(usedNames.includes(finalName)){ n++; finalName = base.slice(0, 26) + '_' + n; }
+      usedNames.push(finalName);
+      const ws = XLSX.utils.aoa_to_sheet(sheetRows);
+      XLSX.utils.book_append_sheet(wb, ws, finalName);
+      const overallPct = totalSlots ? Math.round((totalPresent/totalSlots)*100) : 0;
+      summaryRows.push([cls.name, (cls.members||[]).length, totalSessions, totalSlots ? overallPct + '%' : '—']);
+    }
+
+    const summaryWs = XLSX.utils.aoa_to_sheet(summaryRows);
+    XLSX.utils.book_append_sheet(wb, summaryWs, 'Summary');
+    XLSX.writeFile(wb, 'Sachin_Maths_All_Courses_Attendance.xlsx');
+    toast('Excel file downloaded');
+  }
+
   function startPolling(){
-    if(BACKEND_MODE !== 'live') return; // no cross-device sync possible in local mode
+    if(BACKEND_MODE !== 'live') return;
     if(state.pollTimer) clearInterval(state.pollTimer);
     state.pollTimer = setInterval(async () => {
       if(!state.currentClassId) return;
@@ -1528,6 +1666,7 @@ select,input[type=date],input[type=text],input[type=time]{
 
   document.getElementById('addClassBtn').addEventListener('click', addClass);
   document.getElementById('newClassName').addEventListener('keydown', e => { if(e.key==='Enter') addClass(); });
+  document.getElementById('exportAllBtn').addEventListener('click', exportAllCoursesExcel);
 
   function initModeIndicator(){
     const el = document.getElementById('modeIndicator');
@@ -1544,10 +1683,16 @@ select,input[type=date],input[type=text],input[type=time]{
   }
 
   async function init(){
+    state.deviceId = getDeviceId();
     initModeIndicator();
     document.getElementById('datePicker').value = state.currentDate;
     document.getElementById('mainArea').innerHTML = '<div class="loading-row">Opening the roll book…</div>';
     await loadClasses();
+    const pinInitDone = await safeGet('adminPinInit_v2', true);
+    if(!pinInitDone){
+      await saveAdminPin(DEFAULT_PIN);
+      await safeSet('adminPinInit_v2', '1', true);
+    }
     if(state.classes.length){
       await selectClass(state.classes[0].id);
     } else {
