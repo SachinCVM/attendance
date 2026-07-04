@@ -111,7 +111,7 @@ button{cursor:pointer;}
 .mode-indicator.local{ border-color:var(--gold-dark); color:var(--gold-dark); }
 .field{display:flex;flex-direction:column;gap:3px;}
 .field label{font-size:10px;text-transform:uppercase;letter-spacing:0.6px;color:var(--ink-soft);}
-select,input[type=date],input[type=text],input[type=time],input[type=password]{
+select,input[type=date],input[type=text],input[type=time]{
   border:1.5px solid var(--ink);
   background:var(--card);
   color:var(--ink);
@@ -280,4 +280,767 @@ select,input[type=date],input[type=text],input[type=time],input[type=password]{
 
 .session-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
 .mode-select{display:inline-flex; border:1.5px solid var(--ink); border-radius:20px; overflow:hidden;}
-.mode-btn{border:none; background:var(--card); color:var(--ink); padding:6px 12px; font-size
+.mode-btn{border:none; background:var(--card); color:var(--ink); padding:6px 12px; font-size:11.5px; font-weight:600;}
+.mode-btn.active{background:var(--ink); color:var(--paper);}
+
+.progress-wrap{
+  background:var(--card); border:1.5px solid var(--ink); border-radius:5px; box-shadow:var(--shadow);
+  padding:12px 14px;
+  display:flex;align-items:center;gap:14px;
+}
+.progress-track{
+  flex:1;height:10px;background:var(--paper-dark);border:1px solid var(--paper-line);border-radius:6px;overflow:hidden;
+}
+.progress-fill{height:100%;background:linear-gradient(90deg, var(--present), #2E8C7C);transition:width .3s ease;}
+.progress-label{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;white-space:nowrap;}
+
+.schedule-panel .panel-head{display:flex; justify-content:space-between; align-items:center;}
+.schedule-body{padding:12px 14px;}
+.sched-row{display:flex;align-items:center;gap:10px;padding:5px 0;font-size:13px;}
+.sched-day{width:36px; font-weight:600;}
+.sched-time{padding:5px 8px; font-size:12.5px;}
+.schedule-summary-text{font-size:13px; color:var(--ink-soft);}
+
+.member-panels{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+@media (max-width:640px){ .member-panels{grid-template-columns:1fr;} }
+.join-panel .panel-head, .checkin-panel .panel-head{padding:10px 14px 8px;}
+.join-body, .checkin-body{
+  padding:14px; display:flex; flex-direction:column; gap:8px;
+}
+.join-body input, .checkin-body input, .checkin-body select{width:100%;}
+.checkin-panel{border-color:var(--present); box-shadow:var(--shadow);}
+.checkin-ok{
+  border:1.5px solid var(--present); background:var(--present-bg); color:var(--present);
+  padding:10px 14px; border-radius:4px; font-size:13px; font-weight:600;
+  animation:seal-pop .28s ease-out;
+}
+@media (prefers-reduced-motion: reduce){ .checkin-ok{animation:none;} }
+@keyframes seal-pop{ 0%{opacity:0; transform:scale(0.86);} 100%{opacity:1; transform:scale(1);} }
+.item-picker{display:flex; gap:10px;}
+.item-btn{
+  width:56px;height:56px;font-size:26px;
+  border:2px solid var(--ink); border-radius:8px;
+  background:var(--card); display:flex; align-items:center; justify-content:center;
+  transition:transform .08s ease, background .12s ease;
+}
+.item-btn:hover{background:var(--paper-dark); transform:translateY(-1px);}
+.item-btn:active{transform:translateY(1px);}
+
+.my-attendance-panel .panel-head{padding:10px 14px 8px;}
+.my-attendance-body{padding:14px; display:flex; flex-direction:column; gap:8px;}
+.my-record-table{width:100%; border-collapse:collapse; font-size:12.5px; margin-top:8px;}
+.my-record-table th, .my-record-table td{padding:6px 8px; border-bottom:1px solid var(--paper-line); text-align:left;}
+.my-record-table thead th{font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px; color:var(--ink-soft);}
+
+.ledger{
+  background:var(--card);
+  border:1.5px solid var(--ink);
+  border-radius:5px;
+  box-shadow:var(--shadow-lg);
+  position:relative;
+  overflow:hidden;
+}
+.ledger-inner{
+  background-image:
+    linear-gradient(var(--paper-line) 1px, transparent 1px);
+  background-size: 100% 46px;
+  background-position: 0 44px;
+  padding-left:46px;
+  position:relative;
+}
+.ledger-inner::before{
+  content:"";
+  position:absolute; top:0; bottom:0; left:40px;
+  width:1.5px; background:var(--margin); opacity:0.55;
+}
+.ledger-head-row{
+  display:grid;
+  grid-template-columns:34px 1fr 130px 150px;
+  gap:8px;
+  padding:10px 14px 10px 8px;
+  font-size:10.5px;
+  text-transform:uppercase;
+  letter-spacing:0.6px;
+  color:var(--ink-soft);
+  font-weight:600;
+  border-bottom:2px solid var(--ink);
+  background:var(--paper-dark);
+}
+.row{
+  display:grid;
+  grid-template-columns:34px 1fr 130px 150px;
+  gap:8px;
+  align-items:center;
+  padding:0 14px 0 8px;
+  height:46px;
+}
+.row .num{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--gold-dark); font-weight:600;}
+.name-cell{display:flex;align-items:center;gap:6px;}
+.row .name{font-size:14px; font-weight:500;}
+.edit-btn{
+  border:none;background:none;color:var(--ink-soft);
+  font-size:12px;padding:2px 5px;border-radius:3px;line-height:1;
+}
+.edit-btn:hover{color:var(--ink); background:var(--paper-dark);}
+.row .status-badge{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:12px;
+  padding:3px 8px;
+  border-radius:3px;
+  display:inline-flex;align-items:center;gap:5px;
+  width:fit-content;
+}
+.status-badge.present{background:var(--present-bg); color:var(--present);}
+.status-badge.absent{background:var(--absent-bg); color:var(--absent);}
+.status-badge.late{background:var(--late-bg); color:var(--late);}
+.status-badge.none{background:transparent; color:var(--ink-soft); border:1px dashed var(--paper-line);}
+.time{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);}
+.mark-btns{display:flex;gap:4px;}
+.mark-btn{
+  width:26px;height:26px;border-radius:3px;
+  border:1.5px solid var(--paper-line);
+  background:transparent;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:13px;font-weight:700;
+  color:var(--ink-soft);
+  display:flex;align-items:center;justify-content:center;
+}
+.mark-btn.p{color:var(--present);}
+.mark-btn.a{color:var(--absent);}
+.mark-btn.l{color:var(--late);}
+.mark-btn.active-p{background:var(--present);color:#fff;border-color:var(--present);}
+.mark-btn.active-a{background:var(--absent);color:#fff;border-color:var(--absent);}
+.mark-btn.active-l{background:var(--late);color:#fff;border-color:var(--late);}
+.mark-btn:hover{opacity:0.8;}
+
+.roster-actions{padding:10px 14px; border-top:1px solid var(--paper-line); display:flex; gap:8px;}
+.roster-actions input{flex:1; min-width:0;}
+
+.empty-state{
+  padding:48px 24px;
+  text-align:center;
+  color:var(--ink-soft);
+}
+.empty-state .display{font-size:19px; color:var(--ink); display:block; margin-bottom:8px;}
+.empty-state .btn{margin-top:14px;}
+
+.weekly-panel{margin-top:0;}
+.weekly-scroll{padding:12px; overflow-x:auto;}
+.weekly-table{border-collapse:collapse; width:100%; font-size:12.5px; min-width:420px;}
+.weekly-table th, .weekly-table td{padding:6px 10px; border-bottom:1px solid var(--paper-line); text-align:right; white-space:nowrap;}
+.weekly-table th:first-child, .weekly-table td:first-child{text-align:left; position:sticky; left:0; background:var(--card);}
+.weekly-table thead th{background:var(--paper-dark); font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px; color:var(--ink-soft); font-weight:600;}
+.weekly-table td.low{color:var(--absent); font-weight:700;}
+.weekly-table td.muted{color:var(--ink-soft);}
+
+.toast{
+  position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+  background:var(--ink); color:var(--paper);
+  padding:9px 16px; border-radius:4px; font-size:13px;
+  box-shadow:0 4px 16px rgba(0,0,0,0.25);
+  z-index:50;
+  opacity:0; pointer-events:none;
+  transition:opacity .2s ease, transform .2s ease;
+}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(-4px);}
+
+.note{
+  font-size:11.5px; color:var(--ink-soft); padding:0 2px;
+}
+.note strong{color:var(--ink);}
+
+.loading-row{padding:20px; text-align:center; color:var(--ink-soft); font-size:13px;}
+
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(27,36,48,0.55);
+  display:flex; align-items:center; justify-content:center;
+  z-index:200; padding:20px;
+}
+.modal-box{
+  background:var(--card); border:1.5px solid var(--ink); border-radius:6px;
+  box-shadow:var(--shadow-lg); max-width:360px; width:100%; padding:18px;
+  animation: seal-pop .2s ease-out;
+}
+.modal-title{ font-size:19px; margin-bottom:6px; }
+.modal-message{ font-size:13px; color:var(--ink-soft); margin-bottom:12px; line-height:1.4; }
+.modal-fields{ display:flex; flex-direction:column; gap:8px; margin-bottom:14px; }
+.modal-fields input{ width:100%; }
+.modal-actions{ display:flex; justify-content:flex-end; gap:8px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="header">
+    <div class="brand">
+      <div class="mark display">R·C</div>
+      <div>
+        <h1>Roll Call</h1>
+        <div class="sub">Class attendance register</div>
+      </div>
+    </div>
+    <div class="header-controls">
+      <span class="mode-indicator" id="modeIndicator">…</span>
+      <div class="field">
+        <label for="datePicker">Date</label>
+        <input type="date" id="datePicker">
+      </div>
+      <div class="admin-toggle">
+        <span>Admin</span>
+        <button class="switch" id="adminSwitch" aria-pressed="false" aria-label="Toggle admin mode"><span class="knob"></span></button>
+      </div>
+      <button class="btn small ghost" id="changePinBtn" style="display:none;">🔑 Change PIN</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="sidebar">
+      <div class="panel">
+        <div class="panel-head" id="classesPanelHead">Classes</div>
+        <ul class="class-list" id="classList"></ul>
+        <div class="add-row" id="addClassRow" style="display:none;">
+          <input type="text" id="newClassName" placeholder="New course name">
+          <button class="btn small" id="addClassBtn">Add</button>
+        </div>
+        <div class="cap-note" id="capNote" style="display:none;">Maximum of 15 courses reached.</div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">Class stats</div>
+        <div class="stats-body" id="statsBody">
+          <div class="empty-note">Select a class to see stats.</div>
+        </div>
+      </div>
+
+      <div class="note" id="modeNote">
+        <strong>Note:</strong> only admins see everyone's attendance. Members can check themselves in and privately view their own record only.
+      </div>
+    </div>
+
+    <div class="main" id="mainArea">
+      <div class="empty-state">
+        <span class="display">No class selected</span>
+        Turn on Admin to create your first class, or ask the admin to share one.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="modalOverlay" style="display:none;">
+  <div class="modal-box" id="modalBox">
+    <div class="modal-title display" id="modalTitle"></div>
+    <div class="modal-message" id="modalMessage"></div>
+    <div class="modal-fields" id="modalFields"></div>
+    <div class="modal-actions">
+      <button class="btn small ghost" id="modalCancelBtn">Cancel</button>
+      <button class="btn small" id="modalConfirmBtn">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const MAX_CLASSES = 15;
+  const ICONS = ['⭐','🔵','🔺'];
+  const WEEKDAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+  const LOCAL_PREFIX = 'rollcall::';
+  const hasLiveStorage = (typeof window.storage !== 'undefined' && typeof window.storage.get === 'function');
+
+  const localAdapter = {
+    async get(key){
+      try{
+        const raw = localStorage.getItem(LOCAL_PREFIX + key);
+        if(raw === null) return null;
+        return { key, value: raw, shared: false };
+      }catch(e){ return null; }
+    },
+    async set(key, value){
+      try{
+        localStorage.setItem(LOCAL_PREFIX + key, value);
+        return { key, value, shared: false };
+      }catch(e){ return null; }
+    },
+    async list(prefix){
+      try{
+        const p = LOCAL_PREFIX + (prefix || '');
+        const keys = [];
+        for(let i=0;i<localStorage.length;i++){
+          const k = localStorage.key(i);
+          if(k && k.indexOf(p) === 0){ keys.push(k.slice(LOCAL_PREFIX.length)); }
+        }
+        return { keys, prefix, shared: false };
+      }catch(e){ return { keys: [] }; }
+    }
+  };
+
+  const storageBackend = hasLiveStorage ? window.storage : localAdapter;
+  const BACKEND_MODE = hasLiveStorage ? 'live' : 'local';
+
+  const state = {
+    classes: [],
+    currentClassId: null,
+    currentDate: todayStr(),
+    isAdmin: false,
+    session: { status: 'none', checkins: {}, code: null, verifyMode: 'code', correctItem: null },
+    pollTimer: null,
+    showWeekly: false,
+    editingSchedule: false,
+    nextSessionMode: 'code',
+    myRecordMemberId: null
+  };
+
+  const deviceLocks = {};
+
+  function todayStr(){
+    const d = new Date();
+    const off = d.getTimezoneOffset();
+    const local = new Date(d.getTime() - off*60000);
+    return local.toISOString().slice(0,10);
+  }
+
+  async function safeGet(key, shared){
+    try{ const res = await storageBackend.get(key, shared); return res ? res.value : null; }catch(e){ return null; }
+  }
+  async function safeSet(key, value, shared){
+    try{ const res = await storageBackend.set(key, value, shared); return !!res; }catch(e){ return false; }
+  }
+  async function safeList(prefix, shared){
+    try{ const res = await storageBackend.list(prefix, shared); return res ? res.keys : []; }catch(e){ return []; }
+  }
+
+  function sessionKey(classId, date){ return `session:${classId}:${date}`; }
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+  function genCode(){ return String(Math.floor(1000 + Math.random()*9000)); }
+  function pickItem(){ return ICONS[Math.floor(Math.random()*ICONS.length)]; }
+
+  async function loadClasses(){
+    const raw = await safeGet('classes', true);
+    state.classes = raw ? JSON.parse(raw) : [];
+  }
+  async function saveClasses(){ await safeSet('classes', JSON.stringify(state.classes), true); }
+  
+  async function loadAdminPin(){ 
+    const stored = await safeGet('adminPin', true); 
+    return stored ? stored : "1978"; 
+  }
+  async function saveAdminPin(pin){ await safeSet('adminPin', pin, true); }
+  
+  async function loadSession(classId, date){
+    if(!classId) return { status:'none', checkins:{}, code:null, verifyMode:'code', correctItem:null };
+    const raw = await safeGet(sessionKey(classId,date), true);
+    return raw ? JSON.parse(raw) : { status:'none', checkins:{}, code:null, verifyMode:'code', correctItem:null };
+  }
+  async function saveSession(classId, date, sess){ await safeSet(sessionKey(classId,date), JSON.stringify(sess), true); }
+
+  function currentClass(){ return state.classes.find(c => c.id === state.currentClassId) || null; }
+
+  let toastTimer;
+  function toast(msg){
+    const el = document.getElementById('toast');
+    if(!el) return;
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=> el.classList.remove('show'), 2400);
+  }
+
+  function escapeHtml(s){
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function showModal({ title, message, fields = [], confirmLabel = 'OK', cancelLabel = 'Cancel', danger = false }){
+    return new Promise(resolve => {
+      const overlay = document.getElementById('modalOverlay');
+      document.getElementById('modalTitle').textContent = title || '';
+      const msgEl = document.getElementById('modalMessage');
+      msgEl.textContent = message || '';
+      msgEl.style.display = message ? 'block' : 'none';
+
+      const fieldsWrap = document.getElementById('modalFields');
+      fieldsWrap.innerHTML = '';
+      fields.forEach(f => {
+        const input = document.createElement('input');
+        input.type = f.type || 'text';
+        input.id = 'modalField_' + f.id;
+        input.placeholder = f.placeholder || '';
+        if(f.value) input.value = f.value;
+        fieldsWrap.appendChild(input);
+      });
+
+      const confirmBtn = document.getElementById('modalConfirmBtn');
+      const cancelBtn = document.getElementById('modalCancelBtn');
+      confirmBtn.textContent = confirmLabel;
+      confirmBtn.className = 'btn small' + (danger ? ' red' : '');
+      cancelBtn.textContent = cancelLabel;
+      overlay.style.display = 'flex';
+
+      function cleanup(){
+        overlay.style.display = 'none';
+        confirmBtn.removeEventListener('click', onConfirm);
+        cancelBtn.removeEventListener('click', onCancel);
+        document.removeEventListener('keydown', onKey);
+      }
+      function onConfirm(){
+        const values = {};
+        fields.forEach(f => { values[f.id] = document.getElementById('modalField_' + f.id).value; });
+        cleanup();
+        resolve(values);
+      }
+      function onCancel(){ cleanup(); resolve(null); }
+      function onKey(e){
+        if(e.key === 'Enter'){ e.preventDefault(); onConfirm(); }
+        if(e.key === 'Escape'){ onCancel(); }
+      }
+      confirmBtn.addEventListener('click', onConfirm);
+      cancelBtn.addEventListener('click', onCancel);
+      document.addEventListener('keydown', onKey);
+      setTimeout(() => {
+        const firstInput = fieldsWrap.querySelector('input');
+        if(firstInput) firstInput.focus(); else confirmBtn.focus();
+      }, 30);
+    });
+  }
+
+  async function showConfirm({ title, message, confirmLabel = 'Delete', cancelLabel = 'Cancel' }){
+    const result = await showModal({ title, message, fields: [], confirmLabel, cancelLabel, danger: true });
+    return result !== null;
+  }
+
+  function formatTime12(t){
+    const parts = (t||'09:00').split(':');
+    const h = parseInt(parts[0],10), m = parseInt(parts[1],10);
+    const period = h>=12 ? 'PM' : 'AM';
+    const h12 = ((h+11)%12)+1;
+    return `${h12}:${String(m).padStart(2,'0')} ${period}`;
+  }
+
+  function scheduleSummary(cls){
+    if(!cls.schedule || cls.schedule.length===0) return 'No weekly schedule set yet.';
+    const byTime = {};
+    cls.schedule.forEach(s => { (byTime[s.time] = byTime[s.time]||[]).push(s.day); });
+    const parts = Object.keys(byTime).sort().map(t => {
+      const days = byTime[t].sort((a,b)=>WEEKDAYS.indexOf(a)-WEEKDAYS.indexOf(b)).join(', ');
+      return `Meets ${days} · ${formatTime12(t)}`;
+    });
+    return parts.join('  |  ');
+  }
+
+  function renderClassList(){
+    const ul = document.getElementById('classList');
+    ul.innerHTML = '';
+    if(state.classes.length === 0){
+      const li = document.createElement('li');
+      li.className = 'empty-note';
+      li.style.padding = '4px 6px';
+      li.textContent = state.isAdmin ? 'No courses yet — add one below.' : 'No courses yet.';
+      ul.appendChild(li);
+    }
+    state.classes.forEach(c => {
+      const li = document.createElement('li');
+      const btn = document.createElement('button');
+      btn.className = 'class-tab' + (c.id === state.currentClassId ? ' active' : '');
+      btn.innerHTML = `<span>${escapeHtml(c.name)}</span>`;
+      btn.addEventListener('click', () => selectClass(c.id));
+      if(state.isAdmin){
+        const del = document.createElement('button');
+        del.className = 'del';
+        del.textContent = '✕';
+        del.title = 'Delete course';
+        del.addEventListener('click', (e) => { e.stopPropagation(); deleteClass(c.id); });
+        btn.appendChild(del);
+      }
+      li.appendChild(btn);
+      ul.appendChild(li);
+    });
+    document.getElementById('classesPanelHead').textContent = `Classes (${state.classes.length}/${MAX_CLASSES})`;
+    const atCap = state.classes.length >= MAX_CLASSES;
+    document.getElementById('addClassRow').style.display = (state.isAdmin && !atCap) ? 'flex' : 'none';
+    document.getElementById('capNote').style.display = (state.isAdmin && atCap) ? 'block' : 'none';
+  }
+
+  async function selectClass(id){
+    state.currentClassId = id;
+    state.session = await loadSession(id, state.currentDate);
+    state.showWeekly = false;
+    state.editingSchedule = false;
+    state.myRecordMemberId = null;
+    renderClassList();
+    await renderMain();
+    await renderStats();
+  }
+
+  async function deleteClass(id){
+    const ok = await showConfirm({
+      title: 'Delete this course?',
+      message: 'Its roster will be removed from this list. Attendance history stays in storage but becomes unreachable from here.',
+      confirmLabel: 'Delete'
+    });
+    if(!ok) return;
+    state.classes = state.classes.filter(c => c.id !== id);
+    await saveClasses();
+    if(state.currentClassId === id){
+      state.currentClassId = state.classes[0]?.id || null;
+      state.session = state.currentClassId ? await loadSession(state.currentClassId, state.currentDate) : {status:'none',checkins:{},code:null,verifyMode:'code',correctItem:null};
+    }
+    renderClassList();
+    await renderMain();
+    await renderStats();
+  }
+
+  async function renderMain(){
+    const main = document.getElementById('mainArea');
+    const cls = currentClass();
+    if(!cls){
+      main.innerHTML = `<div class="empty-state"><span class="display">No class selected</span>${state.isAdmin ? 'Add your first course from the sidebar.' : 'Ask the admin to create a course.'}</div>`;
+      return;
+    }
+
+    const isToday = state.currentDate === todayStr();
+    const isLive = state.session.status === 'live';
+    const members = cls.members || [];
+    const presentCount = members.filter(m => (state.session.checkins[m.id]||{}).status === 'present' || (state.session.checkins[m.id]||{}).status === 'late').length;
+    const pct = members.length ? Math.round((presentCount/members.length)*100) : 0;
+
+    let html = '';
+    html += `<div class="toolbar">
+      <div class="class-title-wrap">
+        <div class="class-title">${escapeHtml(cls.name)} <span class="count">${members.length} member${members.length===1?'':'s'}</span></div>
+        <div class="schedule-line">${scheduleSummary(cls)}</div>
+      </div>
+      <div class="toolbar-right">
+        ${isLive ? `<span class="live-badge"><span class="live-dot"></span>SESSION LIVE</span>` : ''}
+        ${isLive && state.isAdmin ? (
+          state.session.verifyMode === 'items'
+            ? `<span class="code-chip"><span class="code-label">Correct item</span><span class="code-value" style="letter-spacing:0;">${state.session.correctItem||''}</span></span>`
+            : `<span class="code-chip"><span class="code-label">Code</span><span class="code-value">${state.session.code || '----'}</span></span>`
+        ) : ''}
+        <div class="session-controls">
+          ${state.isAdmin ? (
+            isToday
+              ? (isLive
+                  ? `<button class="btn ghost small" id="regenBtn">New ${state.session.verifyMode==='items'?'item':'code'}</button><button class="btn red small" id="endSessionBtn">End session</button>`
+                  : `<div class="mode-select">
+                      <button class="mode-btn ${state.nextSessionMode==='code'?'active':''}" id="modeCodeBtn" type="button">Numeric code</button>
+                      <button class="mode-btn ${state.nextSessionMode==='items'?'active':''}" id="modeItemsBtn" type="button">Pick the item</button>
+                    </div>
+                    <button class="btn green small" id="startSessionBtn">Start today's session</button>`)
+              : `<span class="note">Sessions can only be started for today.</span>`
+          ) : ''}
+        </div>
+      </div>
+    </div>`;
+
+    html += `<div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="progress-label mono">${presentCount}/${members.length} present · ${pct}%</div>
+    </div>`;
+
+    if(state.isAdmin){
+      html += renderScheduleSection(cls);
+    }
+
+    if(!state.isAdmin){
+      html += renderMemberPanels(cls, members, isToday, isLive);
+      html += renderMyAttendancePanel(members);
+    }
+
+    if(state.isAdmin){
+      if(members.length === 0){
+        html += `<div class="ledger">
+          <div class="empty-state" style="padding:32px 24px 20px;">
+            <span class="display">Empty roster</span>
+            Add your first member below to start taking attendance.
+          </div>
+          <div class="roster-actions">
+            <input type="text" id="newMemberName" placeholder="Add member name">
+            <button class="btn small" id="addMemberBtn">Add member</button>
+          </div>
+        </div>`;
+      } else {
+        html += `<div class="ledger"><div class="ledger-inner">
+          <div class="ledger-head-row"><span>#</span><span>Name</span><span>Status</span><span>Mark</span></div>
+          <div id="rosterRows"></div>
+        </div>
+        <div class="roster-actions">
+          <input type="text" id="newMemberName" placeholder="Add member name">
+          <button class="btn small" id="addMemberBtn">Add member</button>
+        </div>
+        </div>`;
+      }
+
+      if(state.showWeekly && members.length){
+        html += `<div class="panel weekly-panel">
+          <div class="panel-head">Weekly breakdown <span style="float:right; text-transform:none; letter-spacing:0;">last 8 weeks</span></div>
+          <div class="weekly-scroll" id="weeklyTableWrap"><div class="loading-row">Building weekly breakdown…</div></div>
+        </div>`;
+      }
+    }
+
+    main.innerHTML = html;
+
+    if(state.isAdmin && members.length){
+      const rows = document.getElementById('rosterRows');
+      members.forEach((m, i) => { rows.appendChild(buildRow(m, i)); });
+    }
+
+    if(state.isAdmin){
+      const startBtn = document.getElementById('startSessionBtn');
+      if(startBtn) startBtn.addEventListener('click', startSession);
+      const endBtn = document.getElementById('endSessionBtn');
+      if(endBtn) endBtn.addEventListener('click', endSession);
+      const regenBtn = document.getElementById('regenBtn');
+      if(regenBtn) regenBtn.addEventListener('click', regenerateVerification);
+      const modeCodeBtn = document.getElementById('modeCodeBtn');
+      if(modeCodeBtn) modeCodeBtn.addEventListener('click', () => { state.nextSessionMode='code'; renderMain(); });
+      const modeItemsBtn = document.getElementById('modeItemsBtn');
+      if(modeItemsBtn) modeItemsBtn.addEventListener('click', () => { state.nextSessionMode='items'; renderMain(); });
+      const addMemberBtn = document.getElementById('addMemberBtn');
+      if(addMemberBtn) addMemberBtn.addEventListener('click', adminAddMember);
+      const nm = document.getElementById('newMemberName');
+      if(nm) nm.addEventListener('keydown', e => { if(e.key==='Enter') adminAddMember(); });
+
+      const editSchedBtn = document.getElementById('editScheduleBtn');
+      if(editSchedBtn) editSchedBtn.addEventListener('click', () => { state.editingSchedule = true; renderMain(); });
+      const cancelSchedBtn = document.getElementById('cancelScheduleBtn');
+      if(cancelSchedBtn) cancelSchedBtn.addEventListener('click', () => { state.editingSchedule = false; renderMain(); });
+      const saveSchedBtn = document.getElementById('saveScheduleBtn');
+      if(saveSchedBtn) saveSchedBtn.addEventListener('click', () => saveSchedule(cls));
+    } else {
+      const joinBtn = document.getElementById('joinBtn');
+      if(joinBtn) joinBtn.addEventListener('click', () => joinRoster(cls));
+      const joinInput = document.getElementById('joinName');
+      if(joinInput) joinInput.addEventListener('keydown', e => { if(e.key==='Enter') joinRoster(cls); });
+      const checkinBtn = document.getElementById('checkinBtn');
+      if(checkinBtn) checkinBtn.addEventListener('click', () => submitCheckinCode(cls));
+      const codeInput = document.getElementById('checkinCode');
+      if(codeInput) codeInput.addEventListener('keydown', e => { if(e.key==='Enter') submitCheckinCode(cls); });
+      document.querySelectorAll('.item-btn').forEach(btn => {
+        btn.addEventListener('click', () => submitCheckinItem(cls, btn.dataset.item));
+      });
+      const viewRecordBtn = document.getElementById('viewMyRecordBtn');
+      if(viewRecordBtn) viewRecordBtn.addEventListener('click', () => viewMyRecord(cls));
+    }
+
+    if(state.isAdmin && state.showWeekly && members.length){
+      await renderWeeklyTable(cls);
+    }
+  }
+
+  function renderScheduleSection(cls){
+    if(state.editingSchedule){
+      const map = {};
+      (cls.schedule||[]).forEach(s => map[s.day] = s.time);
+      const rows = WEEKDAYS.map(d => `
+        <label class="sched-row">
+          <input type="checkbox" class="sched-check" data-day="${d}" ${map[d]?'checked':''}>
+          <span class="sched-day">${d}</span>
+          <input type="time" class="sched-time" data-day="${d}" value="${map[d]||'09:00'}">
+        </label>`).join('');
+      return `<div class="panel schedule-panel">
+        <div class="panel-head"><span>Edit weekly schedule</span></div>
+        <div class="schedule-body">
+          ${rows}
+          <div style="display:flex; gap:8px; margin-top:10px;">
+            <button class="btn small" id="saveScheduleBtn">Save schedule</button>
+            <button class="btn small ghost" id="cancelScheduleBtn">Cancel</button>
+          </div>
+        </div>
+      </div>`;
+    }
+    return `<div class="panel schedule-panel">
+      <div class="panel-head"><span>Weekly schedule</span><button class="btn small ghost" id="editScheduleBtn" style="text-transform:none; letter-spacing:0;">Edit schedule</button></div>
+      <div class="schedule-body"><div class="schedule-summary-text">${scheduleSummary(cls)}</div></div>
+    </div>`;
+  }
+
+  function saveSchedule(cls){
+    const checks = document.querySelectorAll('.sched-check');
+    const schedule = [];
+    checks.forEach(chk => {
+      if(chk.checked){
+        const day = chk.dataset.day;
+        const timeInput = document.querySelector(`.sched-time[data-day="${day}"]`);
+        schedule.push({ day, time: timeInput ? timeInput.value : '09:00' });
+      }
+    });
+    cls.schedule = schedule;
+    saveClasses().then(() => {
+      state.editingSchedule = false;
+      toast('Schedule saved');
+      renderMain();
+    });
+  }
+
+  function renderMemberPanels(cls, members, isToday, isLive){
+    const key = sessionKey(cls.id, state.currentDate);
+    const locked = deviceLocks[key];
+    const options = members.map(m => `<option value="${m.id}" ${state.myRecordMemberId===m.id?'selected':''}>${escapeHtml(m.name)}</option>`).join('');
+
+    let checkinInner;
+    if(!isToday){
+      checkinInner = `<div class="empty-note" style="padding:0;">Check-in only works for today's session.</div>`;
+    } else if(!isLive){
+      checkinInner = `<div class="empty-note" style="padding:0;">Waiting for the admin to start today's session.</div>`;
+    } else if(locked){
+      checkinInner = `<div class="checkin-ok">✓ Checked in from this device. If this wasn't you, ask the admin.</div>`;
+    } else if(state.session.verifyMode === 'items'){
+      checkinInner = `
+        <select id="checkinName"><option value="">Select your name…</option>${options}</select>
+        <div class="item-picker">${ICONS.map(ic => `<button type="button" class="item-btn" data-item="${ic}">${ic}</button>`).join('')}</div>
+        <div class="note">Tap the item the admin told you is correct for this session.</div>`;
+    } else {
+      checkinInner = `
+        <select id="checkinName"><option value="">Select your name…</option>${options}</select>
+        <input type="text" id="checkinCode" placeholder="Enter today's code" maxlength="8" autocomplete="off">
+        <button class="btn green" id="checkinBtn">✓ Mark me present</button>
+        <div class="note">Enter the code the admin shared out loud or in your group chat for this session only.</div>`;
+    }
+
+    return `<div class="member-panels">
+      <div class="panel join-panel">
+        <div class="panel-head">New here? Join this roster</div>
+        <div class="join-body">
+          <input type="text" id="joinName" placeholder="Your full name">
+          <button class="btn small" id="joinBtn">Join roster</button>
+          <div class="note">One-time only — once you're on the roster, use Check in whenever the admin starts a session.</div>
+        </div>
+      </div>
+      <div class="panel checkin-panel">
+        <div class="panel-head">Check in</div>
+        <div class="checkin-body">${checkinInner}</div>
+      </div>
+    </div>`;
+  }
+
+  function renderMyAttendancePanel(members){
+    const options = members.map(m => `<option value="${m.id}" ${state.myRecordMemberId===m.id?'selected':''}>${escapeHtml(m.name)}</option>`).join('');
+    return `<div class="panel my-attendance-panel">
+      <div class="panel-head">My attendance (private)</div>
+      <div class="my-attendance-body">
+        ${members.length ? `
+          <select id="myRecordSelect"><option value="">Select your name…</option>${options}</select>
+          <button class="btn small" id="viewMyRecordBtn">View my record</button>
+          <div class="note">Only you see this when you look it up — no one else's attendance is shown here.</div>
+          <div id="myRecordResult"></div>
+        ` : `<div class="empty-note" style="padding:0;">Join the roster above first.</div>`}
+      </div>
+    </div>`;
+  }
+
+  async function viewMyRecord(cls){
+    const sel = document.getElementById('myRecordSelect');
+    const resultBox = document.getElementById('myRecordResult');
+    if(!sel || !sel.value){ toast('Select your name first'); return; }
+    state.myRecordMemberId = sel.value;
+    resultBox.innerHTML = '<div class="loading-row">Looking up your record…</div>';
+    const record = await computeMemberRecord(cls, sel.value);
+    resultBox.innerHTML = renderMyRecordHtml(record);
+  }
+
+  async function computeMember
