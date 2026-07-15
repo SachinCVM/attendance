@@ -550,10 +550,73 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
 </div>
 
 <script>
+  // Bridge between the deferred Firebase module script (below) and the main
+  // classic script that follows it. The main script awaits this promise
+  // before deciding which storage backend to use.
+  window.__firebaseAdapterPromise = new Promise(resolve => {
+    window.__resolveFirebaseAdapter = resolve;
+  });
+</script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+  import {
+    getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs
+  } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDnFR-9FI2WtJY9G945Jb4nqK-Ag8PmgmI",
+    authDomain: "sachin-maths-attendance.firebaseapp.com",
+    projectId: "sachin-maths-attendance",
+    storageBucket: "sachin-maths-attendance.firebasestorage.app",
+    messagingSenderId: "127093217879",
+    appId: "1:127093217879:web:647e721cee8f38a5ee6112"
+  };
+
+  try {
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const adapter = {
+      async get(key){
+        try{
+          const snap = await getDoc(doc(db, 'kv', key));
+          if(!snap.exists()) return null;
+          const data = snap.data();
+          return { key, value: data.value, shared: true };
+        }catch(e){ console.error('Firebase get failed', e); return null; }
+      },
+      async set(key, value){
+        try{
+          await setDoc(doc(db, 'kv', key), { key, value, updatedAt: Date.now() });
+          return { key, value, shared: true };
+        }catch(e){ console.error('Firebase set failed', e); return null; }
+      },
+      async list(prefix){
+        try{
+          const p = prefix || '';
+          const q = query(collection(db, 'kv'), where('key', '>=', p), where('key', '<', p + '\uf8ff'));
+          const snap = await getDocs(q);
+          const keys = [];
+          snap.forEach(d => { const data = d.data(); if(data && data.key) keys.push(data.key); });
+          return { keys };
+        }catch(e){ console.error('Firebase list failed', e); return { keys: [] }; }
+      }
+    };
+
+    window.__resolveFirebaseAdapter(adapter);
+  } catch(e) {
+    console.error('Firebase init failed', e);
+    window.__resolveFirebaseAdapter(null);
+  }
+</script>
+
+<script>
 (function(){
   const MAX_CLASSES = 15;
   const ICONS = ['⭐','🔵','🔺'];
   const WEEKDAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
   const DEFAULT_PIN = '1976';
 
   const LOCAL_PREFIX = 'rollcall::';
@@ -586,8 +649,22 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
     }
   };
 
-  const storageBackend = hasLiveStorage ? window.storage : localAdapter;
-  const BACKEND_MODE = hasLiveStorage ? 'live' : 'local';
+  // These start unset and are resolved inside init() before any data call
+  // happens, once we know whether Firebase connected successfully.
+  let storageBackend = null;
+  let BACKEND_MODE = 'pending';
+
+  async function determineBackend(){
+    if(hasLiveStorage) return { backend: window.storage, mode: 'live' };
+    try{
+      const fb = await Promise.race([
+        window.__firebaseAdapterPromise,
+        new Promise(resolve => setTimeout(() => resolve(null), 5000))
+      ]);
+      if(fb) return { backend: fb, mode: 'firebase' };
+    }catch(e){ /* fall through to local */ }
+    return { backend: localAdapter, mode: 'local' };
+  }
 
   const state = {
     classes: [],
@@ -597,6 +674,7 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
     session: { status: 'none', checkins: {}, code: null, verifyMode: 'code', correctItem: null },
     pollTimer: null,
     showWeekly: false,
+
     editingSchedule: false,
     nextSessionMode: 'code',
     deviceId: null
@@ -1597,7 +1675,7 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
   }
 
   function startPolling(){
-    if(BACKEND_MODE !== 'live') return;
+    if(BACKEND_MODE === 'local') return;
     if(state.pollTimer) clearInterval(state.pollTimer);
     state.pollTimer = setInterval(async () => {
       if(!state.currentClassId) return;
@@ -1674,9 +1752,13 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
       el.textContent = '🟢 Live sync';
       el.title = 'Connected — attendance syncs live across everyone using this link.';
       el.className = 'mode-indicator live';
+    } else if(BACKEND_MODE === 'firebase'){
+      el.textContent = '🔥 Firebase sync';
+      el.title = 'Connected to Firebase — attendance syncs live across every device using this link.';
+      el.className = 'mode-indicator live';
     } else {
       el.textContent = '📴 This device only';
-      el.title = 'Working offline/standalone — data is saved only in this browser, on this device.';
+      el.title = 'No sync backend reachable — data is saved only in this browser, on this device.';
       el.className = 'mode-indicator local';
       toast('📴 Offline mode — attendance is saved only on this device.');
     }
@@ -1684,6 +1766,10 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
 
   async function init(){
     state.deviceId = getDeviceId();
+    document.getElementById('mainArea').innerHTML = '<div class="loading-row">Connecting…</div>';
+    const picked = await determineBackend();
+    storageBackend = picked.backend;
+    BACKEND_MODE = picked.mode;
     initModeIndicator();
     document.getElementById('datePicker').value = state.currentDate;
     document.getElementById('mainArea').innerHTML = '<div class="loading-row">Opening the roll book…</div>';
