@@ -707,6 +707,18 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
   async function safeGet(key, shared){
     try{ const res = await storageBackend.get(key, shared); return res ? res.value : null; }catch(e){ return null; }
   }
+  // Used for the two places where silently treating "read failed" the same
+  // as "nothing here yet" caused real bugs (classes vanishing, live session
+  // data flashing away): distinguishes a genuine error from legitimate empty data.
+  async function safeGetResult(key, shared){
+    try{
+      const res = await storageBackend.get(key, shared);
+      return { ok: true, value: res ? res.value : null };
+    }catch(e){
+      console.error('Storage read failed for', key, e);
+      return { ok: false, value: null };
+    }
+  }
   async function safeSet(key, value, shared){
     try{ const res = await storageBackend.set(key, value, shared); return !!res; }catch(e){ return false; }
   }
@@ -718,19 +730,28 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
   function genCode(){ return String(Math.floor(1000 + Math.random()*9000)); }
   function pickItem(){ return ICONS[Math.floor(Math.random()*ICONS.length)]; }
+  function emptySession(){ return { status:'none', checkins:{}, code:null, verifyMode:'code', correctItem:null }; }
 
   async function loadClasses(){
-    const raw = await safeGet('classes', true);
-    state.classes = raw ? JSON.parse(raw) : [];
+    const result = await safeGetResult('classes', true);
+    if(!result.ok){
+      toast('⚠️ Could not reach the database — keeping last loaded classes');
+      return; // leave state.classes untouched rather than wiping it
+    }
+    state.classes = result.value ? JSON.parse(result.value) : [];
   }
   async function saveClasses(){ await safeSet('classes', JSON.stringify(state.classes), true); }
   async function loadAdminPin(){ return await safeGet('adminPin', true); }
   async function saveAdminPin(pin){ await safeSet('adminPin', pin, true); }
 
+  // Returns null (a distinct failure signal) if the read genuinely failed,
+  // so callers can choose to keep their existing good data instead of
+  // overwriting it with an empty default.
   async function loadSession(classId, date){
-    if(!classId) return { status:'none', checkins:{}, code:null, verifyMode:'code', correctItem:null };
-    const raw = await safeGet(sessionKey(classId,date), true);
-    return raw ? JSON.parse(raw) : { status:'none', checkins:{}, code:null, verifyMode:'code', correctItem:null };
+    if(!classId) return emptySession();
+    const result = await safeGetResult(sessionKey(classId,date), true);
+    if(!result.ok) return null;
+    return result.value ? JSON.parse(result.value) : emptySession();
   }
   async function saveSession(classId, date, sess){ await safeSet(sessionKey(classId,date), JSON.stringify(sess), true); }
 
@@ -864,7 +885,13 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
 
   async function selectClass(id){
     state.currentClassId = id;
-    state.session = await loadSession(id, state.currentDate);
+    const sess = await loadSession(id, state.currentDate);
+    if(sess === null){
+      toast('⚠️ Could not load today\'s session — check your connection');
+      state.session = emptySession();
+    } else {
+      state.session = sess;
+    }
     state.showWeekly = false;
     state.editingSchedule = false;
     renderClassList();
@@ -883,7 +910,12 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
     await saveClasses();
     if(state.currentClassId === id){
       state.currentClassId = state.classes[0]?.id || null;
-      state.session = state.currentClassId ? await loadSession(state.currentClassId, state.currentDate) : {status:'none',checkins:{},code:null,verifyMode:'code',correctItem:null};
+      if(state.currentClassId){
+        const sess = await loadSession(state.currentClassId, state.currentDate);
+        state.session = sess === null ? emptySession() : sess;
+      } else {
+        state.session = emptySession();
+      }
     }
     renderClassList();
     await renderMain();
@@ -900,6 +932,7 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
 
     const isToday = state.currentDate === todayStr();
     const isLive = state.session.status === 'live';
+    const hasCode = !!(state.session.code || state.session.correctItem);
     const members = cls.members || [];
     const presentCount = members.filter(m => (state.session.checkins[m.id]||{}).status === 'present' || (state.session.checkins[m.id]||{}).status === 'late').length;
     const pct = members.length ? Math.round((presentCount/members.length)*100) : 0;
@@ -913,7 +946,7 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
       </div>
       <div class="toolbar-right">
         ${isLive ? `<span class="live-badge"><span class="live-dot"></span>SESSION LIVE</span>` : ''}
-        ${isLive && state.isAdmin ? (
+        ${isLive && state.isAdmin && hasCode ? (
           state.session.verifyMode === 'items'
             ? `<span class="code-chip"><span class="code-label">Correct item</span><span class="code-value" style="letter-spacing:0;">${state.session.correctItem||''}</span></span>`
             : `<span class="code-chip"><span class="code-label">Code</span><span class="code-value">${state.session.code || '----'}</span></span>`
@@ -922,13 +955,14 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
           ${state.isAdmin ? (
             isToday
               ? (isLive
-                  ? `<button class="btn ghost small" id="regenBtn">New ${state.session.verifyMode==='items'?'item':'code'}</button><button class="btn red small" id="endSessionBtn">End session</button>`
+                  ? (hasCode
+                      ? `<button class="btn ghost small" id="regenBtn">New ${state.session.verifyMode==='items'?'item':'code'}</button><button class="btn red small" id="endSessionBtn">End session</button>`
+                      : `<button class="btn green small" id="genCodeBtn">Generate ${state.nextSessionMode==='items'?'item':'code'}</button><button class="btn red small" id="endSessionBtn">End session</button>`)
                   : `<div class="mode-select">
                       <button class="mode-btn ${state.nextSessionMode==='code'?'active':''}" id="modeCodeBtn" type="button">Numeric code</button>
                       <button class="mode-btn ${state.nextSessionMode==='items'?'active':''}" id="modeItemsBtn" type="button">Pick the item</button>
                     </div>
-                    <button class="btn green small" id="startSessionBtn">Open session</button>
-                    <button class="btn ghost small" id="genCodeBtn" style="display:none;">Generate code</button>`)
+                    <button class="btn green small" id="startSessionBtn">Open session</button>`)
               : `<span class="note">Sessions can only be started for today.</span>`
           ) : ''}
         </div>
@@ -1241,6 +1275,7 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
     const code = codeInput.value.trim();
     if(!code){ toast('Enter the code'); return; }
     const fresh = await loadSession(cls.id, state.currentDate);
+    if(fresh === null){ toast('Could not verify — check your connection and try again'); return; }
     if(fresh.status !== 'live'){ toast('This session is no longer live'); state.session = fresh; await renderMain(); return; }
     if(fresh.verifyMode !== 'code' || !fresh.code || code !== fresh.code){ toast('Incorrect code — check with the admin'); return; }
     if(fresh.checkins[memberId]){ toast('You are already marked for today'); state.session = fresh; await renderMain(); return; }
@@ -1254,6 +1289,7 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
 
   async function submitCheckinItem(cls, memberId, item){
     const fresh = await loadSession(cls.id, state.currentDate);
+    if(fresh === null){ toast('Could not verify — check your connection and try again'); return; }
     if(fresh.status !== 'live'){ toast('This session is no longer live'); state.session = fresh; await renderMain(); return; }
     if(fresh.verifyMode !== 'items' || fresh.correctItem !== item){ toast('That\'s not the right item — try again'); return; }
     if(fresh.checkins[memberId]){ toast('You are already marked for today'); state.session = fresh; await renderMain(); return; }
@@ -1384,8 +1420,6 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
     await saveSession(state.currentClassId, state.currentDate, state.session);
     toast('Session opened — click "Generate code" when you want students to start checking in');
     await renderMain();
-    const genBtn = document.getElementById('genCodeBtn');
-    if(genBtn) genBtn.style.display = 'inline-flex';
   }
   async function generateVerification(){
     if(state.nextSessionMode === 'items'){
@@ -1680,6 +1714,7 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
     state.pollTimer = setInterval(async () => {
       if(!state.currentClassId) return;
       const fresh = await loadSession(state.currentClassId, state.currentDate);
+      if(fresh === null) return; // read failed this cycle — keep showing existing good data
       if(JSON.stringify(fresh) !== JSON.stringify(state.session)){
         state.session = fresh;
         await renderMain();
@@ -1705,6 +1740,21 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
       return;
     }
     const existingPin = await loadAdminPin();
+    if(!existingPin){
+      const result = await showModal({
+        title: 'Set up admin PIN',
+        message: "No PIN is currently stored — create one now to unlock Admin mode.",
+        fields: [{ id: 'pin', type: 'password', placeholder: 'Choose a PIN' }],
+        confirmLabel: 'Create PIN'
+      });
+      if(!result) return;
+      const trimmed = (result.pin || '').trim();
+      if(!trimmed){ toast('PIN cannot be empty'); return; }
+      await saveAdminPin(trimmed);
+      toast('Admin PIN created');
+      await setAdminUI(true);
+      return;
+    }
     const result = await showModal({
       title: 'Admin PIN required',
       fields: [{ id: 'pin', type: 'password', placeholder: 'Enter PIN' }],
@@ -1737,7 +1787,13 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
   document.getElementById('datePicker').addEventListener('change', async (e) => {
     state.currentDate = e.target.value || todayStr();
     if(state.currentClassId){
-      state.session = await loadSession(state.currentClassId, state.currentDate);
+      const sess = await loadSession(state.currentClassId, state.currentDate);
+      if(sess === null){
+        toast('⚠️ Could not load that date\'s session — check your connection');
+        state.session = emptySession();
+      } else {
+        state.session = sess;
+      }
     }
     await renderMain();
   });
@@ -1774,10 +1830,12 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
     document.getElementById('datePicker').value = state.currentDate;
     document.getElementById('mainArea').innerHTML = '<div class="loading-row">Opening the roll book…</div>';
     await loadClasses();
-    const pinInitDone = await safeGet('adminPinInit_v2', true);
-    if(!pinInitDone){
+    // Self-healing: directly check whether a PIN is actually stored, rather
+    // than trusting a separate "setup done" flag that could get out of sync
+    // if an earlier save silently failed.
+    const existingPin = await loadAdminPin();
+    if(!existingPin){
       await saveAdminPin(DEFAULT_PIN);
-      await safeSet('adminPinInit_v2', '1', true);
     }
     if(state.classes.length){
       await selectClass(state.classes[0].id);
