@@ -112,7 +112,7 @@ button{cursor:pointer;}
 .mode-indicator.local{ border-color:var(--gold-dark); color:var(--gold-dark); }
 .field{display:flex;flex-direction:column;gap:3px;}
 .field label{font-size:10px;text-transform:uppercase;letter-spacing:0.6px;color:var(--ink-soft);}
-select,input[type=date],input[type=text],input[type=time],input[type=tel],input[type=password]{
+select,input[type=date],input[type=text],input[type=time],input[type=tel],input[type=password],input[type=number]{
   border:1.5px solid var(--ink);
   background:var(--card);
   color:var(--ink);
@@ -166,7 +166,7 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
   font-size:11px;text-transform:uppercase;letter-spacing:0.8px;
   color:var(--ink-soft);
   padding:10px 12px 8px;
-  border-bottom:1px solid var(--paper-line);
+  border-bottom:2px solid var(--gold-light);
   font-weight:600;
 }
 .class-list{list-style:none;margin:0;padding:8px;display:flex;flex-direction:column;gap:4px;}
@@ -245,6 +245,15 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
   font-weight:500;
 }
 .schedule-line{font-size:11.5px; color:var(--ink-soft);}
+.sched-summary-wrap{display:flex; flex-wrap:wrap; gap:10px; align-items:center;}
+.sched-line{display:inline-flex; align-items:center; gap:4px; background:var(--paper-dark); border:1px solid var(--paper-line); border-radius:14px; padding:3px 8px 3px 4px;}
+.day-chip{
+  font-size:10px; font-weight:700; letter-spacing:0.3px; padding:2px 6px;
+  border-radius:8px; border:1px solid; line-height:1.5;
+}
+.sched-time-label{font-size:11px; color:var(--ink); font-weight:600; margin-left:2px;}
+.sched-duration-note{font-size:10.5px; color:var(--gold-dark); margin-top:4px; font-weight:600;}
+.schedule-summary-text{font-size:12.5px; color:var(--ink-soft); line-height:1.8;}
 .toolbar-right{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
 .live-badge{
   display:inline-flex;align-items:center;gap:6px;
@@ -357,7 +366,7 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
 }
 .ledger-head-row{
   display:grid;
-  grid-template-columns:34px 1fr 140px 110px 150px;
+  grid-template-columns:34px 1fr 130px 100px 140px 34px;
   gap:8px;
   padding:10px 14px 10px 8px;
   font-size:10.5px;
@@ -370,12 +379,15 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
 }
 .row{
   display:grid;
-  grid-template-columns:34px 1fr 140px 110px 150px;
+  grid-template-columns:34px 1fr 130px 100px 140px 34px;
   gap:8px;
   align-items:center;
   padding:8px 14px 8px 8px;
   min-height:46px;
+  transition:background 0.15s ease;
 }
+.row:nth-child(even){background:rgba(184,134,59,0.045);}
+.row:hover{background:var(--present-bg);}
 .row .num{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--gold-dark); font-weight:600;}
 .name-cell{display:flex;align-items:center;gap:6px;}
 .row .name{font-size:14px; font-weight:500;}
@@ -417,6 +429,45 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
 .mark-btn.active-a{background:var(--absent);color:#fff;border-color:var(--absent);}
 .mark-btn.active-l{background:var(--late);color:#fff;border-color:var(--late);}
 .mark-btn:hover{opacity:0.8;}
+.edit-btn.danger{color:var(--absent);}
+.edit-btn.danger:hover{color:#fff; background:var(--absent);}
+.enroll-line{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--gold-dark); font-weight:600;}
+
+.auto-pill{
+  background:var(--gold); color:#3B2A10; font-size:9px; font-weight:700;
+  padding:2px 7px; border-radius:8px; margin-right:2px; letter-spacing:0.5px;
+  text-transform:uppercase;
+}
+
+.mismatch-summary{display:flex; flex-direction:column; gap:10px;}
+.mismatch-stat{
+  font-size:13px; color:var(--ink); background:var(--late-bg); border:1.5px solid var(--late);
+  padding:8px 10px; border-radius:4px;
+}
+.mismatch-stat strong{color:var(--ink);}
+.mismatch-diff{color:var(--absent); font-weight:600;}
+.unmarked-label{font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--ink-soft); font-weight:600;}
+.unmarked-list{display:flex; flex-wrap:wrap; gap:6px;}
+.unmarked-chip{
+  font-size:12px; padding:3px 9px; border-radius:12px;
+  background:var(--absent-bg); color:var(--absent); border:1px solid var(--absent);
+  font-weight:600;
+}
+.unmarked-chip.ok{background:var(--present-bg); color:var(--present); border-color:var(--present);}
+
+.modal-box.wide{max-width:440px;}
+
+.sched-duration-row{
+  display:flex; align-items:center; gap:10px; margin-top:10px; padding-top:10px;
+  border-top:1px dashed var(--paper-line); font-size:13px;
+}
+.sched-duration-row label{font-weight:600; color:var(--ink-soft); font-size:12px;}
+.sched-duration-row input{width:80px;}
+.auto-schedule-note{font-size:11px; color:var(--gold-dark); margin-top:4px;}
+
+.quick-checkin-panel .panel-head{background:var(--gold-light); color:#3B2A10; border-bottom-color:var(--gold-dark);}
+.quick-checkin-body{padding:12px; display:flex; flex-direction:column; gap:8px;}
+.quick-checkin-body input{width:100%;}
 
 .roster-actions{padding:10px 14px; border-top:1px solid var(--paper-line); display:flex; gap:8px; flex-wrap:wrap;}
 .roster-actions input{flex:1; min-width:120px;}
@@ -512,6 +563,8 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
           <button class="btn small ghost" id="exportAllBtn">📊 Export All Courses (Excel)</button>
         </div>
       </div>
+
+      <div class="panel quick-checkin-panel" id="quickCheckinPanel" style="display:none;"></div>
 
       <div class="panel">
         <div class="panel-head">Class stats</div>
@@ -668,6 +721,7 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
 
   const state = {
     classes: [],
+    classesLoaded: false, // becomes true only after a CONFIRMED successful read of the shared class list — saveClasses() refuses to run until then, so a startup connection blip can never overwrite real data with an empty local copy
     currentClassId: null,
     currentDate: todayStr(),
     isAdmin: false,
@@ -730,17 +784,38 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
   function genCode(){ return String(Math.floor(1000 + Math.random()*9000)); }
   function pickItem(){ return ICONS[Math.floor(Math.random()*ICONS.length)]; }
-  function emptySession(){ return { status:'none', checkins:{}, code:null, verifyMode:'code', correctItem:null }; }
+  function emptySession(){ return { status:'none', checkins:{}, code:null, verifyMode:'code', correctItem:null, headcount:null, autoStarted:false }; }
 
   async function loadClasses(){
     const result = await safeGetResult('classes', true);
     if(!result.ok){
       toast('⚠️ Could not reach the database — keeping last loaded classes');
-      return; // leave state.classes untouched rather than wiping it
+      return false; // leave state.classes untouched rather than wiping it
     }
     state.classes = result.value ? JSON.parse(result.value) : [];
+    state.classesLoaded = true;
+    return true;
   }
-  async function saveClasses(){ await safeSet('classes', JSON.stringify(state.classes), true); }
+  async function saveClasses(){
+    if(!state.classesLoaded){
+      // We have never confirmed a real read of the shared class list in this
+      // session. Writing now could permanently overwrite existing classes and
+      // registrations with an empty/incomplete local copy — refuse instead.
+      toast('⚠️ Not connected yet — this change was NOT saved. Please wait a moment and try again.');
+      return false;
+    }
+    const ok = await safeSet('classes', JSON.stringify(state.classes), true);
+    if(!ok) toast('⚠️ Save failed — check your connection and try again.');
+    return ok;
+  }
+  async function loadClassesWithRetry(maxAttempts){
+    for(let i=0; i<maxAttempts; i++){
+      const ok = await loadClasses();
+      if(ok) return true;
+      if(i < maxAttempts-1) await new Promise(r => setTimeout(r, 900));
+    }
+    return false;
+  }
   async function loadAdminPin(){ return await safeGet('adminPin', true); }
   async function saveAdminPin(pin){ await safeSet('adminPin', pin, true); }
 
@@ -772,13 +847,20 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
     return d.innerHTML;
   }
 
-  function showModal({ title, message, fields = [], confirmLabel = 'OK', cancelLabel = 'Cancel', danger = false }){
+  function showModal({ title, message, messageHTML, fields = [], confirmLabel = 'OK', cancelLabel = 'Cancel', danger = false, wide = false }){
     return new Promise(resolve => {
       const overlay = document.getElementById('modalOverlay');
+      const box = document.getElementById('modalBox');
+      box.classList.toggle('wide', !!wide);
       document.getElementById('modalTitle').textContent = title || '';
       const msgEl = document.getElementById('modalMessage');
-      msgEl.textContent = message || '';
-      msgEl.style.display = message ? 'block' : 'none';
+      if(messageHTML){
+        msgEl.innerHTML = messageHTML;
+        msgEl.style.display = 'block';
+      } else {
+        msgEl.textContent = message || '';
+        msgEl.style.display = message ? 'block' : 'none';
+      }
 
       const fieldsWrap = document.getElementById('modalFields');
       fieldsWrap.innerHTML = '';
@@ -838,15 +920,27 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
     return `${h12}:${String(m).padStart(2,'0')} ${period}`;
   }
 
+  const DAY_COLORS = {
+    Mon:'#4C6EF5', Tue:'#12958A', Wed:'#C08A1E', Thu:'#D9534F', Fri:'#7048A8', Sat:'#D97706', Sun:'#6B7280'
+  };
+
   function scheduleSummary(cls){
     if(!cls.schedule || cls.schedule.length===0) return 'No weekly schedule set yet.';
     const byTime = {};
     cls.schedule.forEach(s => { (byTime[s.time] = byTime[s.time]||[]).push(s.day); });
-    const parts = Object.keys(byTime).sort().map(t => {
-      const days = byTime[t].sort((a,b)=>WEEKDAYS.indexOf(a)-WEEKDAYS.indexOf(b)).join(', ');
-      return `Meets ${days} · ${formatTime12(t)}`;
+    // group identical times together, but ORDER the groups Monday -> Sunday
+    // (by each group's earliest weekday), not by clock time.
+    const groups = Object.keys(byTime).map(t => {
+      const days = byTime[t].slice().sort((a,b)=>WEEKDAYS.indexOf(a)-WEEKDAYS.indexOf(b));
+      return { time: t, days, minIdx: WEEKDAYS.indexOf(days[0]) };
     });
-    return parts.join('  |  ');
+    groups.sort((a,b) => a.minIdx - b.minIdx);
+    const parts = groups.map(g => {
+      const dayChips = g.days.map(d => `<span class="day-chip" style="background:${DAY_COLORS[d]}22; color:${DAY_COLORS[d]}; border-color:${DAY_COLORS[d]}66;">${d}</span>`).join('');
+      return `<span class="sched-line">${dayChips}<span class="sched-time-label">${formatTime12(g.time)}</span></span>`;
+    });
+    const dur = cls.sessionDuration || 60;
+    return `<div class="sched-summary-wrap">${parts.join('')}</div><div class="sched-duration-note">${dur} min · auto-starts &amp; auto-ends</div>`;
   }
 
   function renderClassList(){
@@ -906,8 +1000,10 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
       confirmLabel: 'Delete'
     });
     if(!ok) return;
+    const before = state.classes;
     state.classes = state.classes.filter(c => c.id !== id);
-    await saveClasses();
+    const saved = await saveClasses();
+    if(!saved){ state.classes = before; return; } // save was blocked/failed — restore local list so UI matches storage
     if(state.currentClassId === id){
       state.currentClassId = state.classes[0]?.id || null;
       if(state.currentClassId){
@@ -927,6 +1023,7 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
     const cls = currentClass();
     if(!cls){
       main.innerHTML = `<div class="empty-state"><span class="display">No class selected</span>${state.isAdmin ? 'Add your first course from the sidebar.' : 'Ask the admin to create a course.'}</div>`;
+      renderQuickCheckin();
       return;
     }
 
@@ -945,7 +1042,7 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
         <div class="schedule-line">${scheduleSummary(cls)}</div>
       </div>
       <div class="toolbar-right">
-        ${isLive ? `<span class="live-badge"><span class="live-dot"></span>SESSION LIVE</span>` : ''}
+        ${isLive ? `<span class="live-badge">${state.session.autoStarted ? '<span class="auto-pill">Auto</span>' : ''}<span class="live-dot"></span>SESSION LIVE</span>` : ''}
         ${isLive && state.isAdmin && hasCode ? (
           state.session.verifyMode === 'items'
             ? `<span class="code-chip"><span class="code-label">Correct item</span><span class="code-value" style="letter-spacing:0;">${state.session.correctItem||''}</span></span>`
@@ -994,6 +1091,7 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
             Add your first member below to start taking attendance.
           </div>
           <div class="roster-actions">
+            <input type="text" id="newMemberEnrollment" placeholder="Enrollment No.">
             <input type="text" id="newMemberName" placeholder="Full name">
             <input type="text" id="newMemberMobile" placeholder="Mobile (optional)">
             <button class="btn small" id="addMemberBtn">Add member</button>
@@ -1001,10 +1099,11 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
         </div>`;
       } else {
         html += `<div class="ledger"><div class="ledger-inner">
-          <div class="ledger-head-row"><span>#</span><span>Name</span><span>Device</span><span>Status</span><span>Mark</span></div>
+          <div class="ledger-head-row"><span>#</span><span>Name</span><span>Device</span><span>Status</span><span>Mark</span><span></span></div>
           <div id="rosterRows"></div>
         </div>
         <div class="roster-actions">
+          <input type="text" id="newMemberEnrollment" placeholder="Enrollment No.">
           <input type="text" id="newMemberName" placeholder="Full name">
           <input type="text" id="newMemberMobile" placeholder="Mobile (optional)">
           <button class="btn small" id="addMemberBtn">Add member</button>
@@ -1072,6 +1171,8 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
     if(state.isAdmin && state.showWeekly && members.length){
       await renderWeeklyTable(cls);
     }
+
+    renderQuickCheckin();
   }
 
   function renderScheduleSection(cls){
@@ -1088,6 +1189,11 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
         <div class="panel-head"><span>Edit weekly schedule</span></div>
         <div class="schedule-body">
           ${rows}
+          <div class="sched-duration-row">
+            <label for="schedDuration">Session length</label>
+            <input type="number" id="schedDuration" min="5" max="480" step="5" value="${cls.sessionDuration || 60}"> minutes
+          </div>
+          <div class="auto-schedule-note">Sessions on checked days open automatically at start time and close automatically after this many minutes — unless you start/end one manually.</div>
           <div style="display:flex; gap:8px; margin-top:10px;">
             <button class="btn small" id="saveScheduleBtn">Save schedule</button>
             <button class="btn small ghost" id="cancelScheduleBtn">Cancel</button>
@@ -1112,11 +1218,66 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
       }
     });
     cls.schedule = schedule;
-    saveClasses().then(() => {
+    const durInput = document.getElementById('schedDuration');
+    let dur = durInput ? parseInt(durInput.value, 10) : 60;
+    if(isNaN(dur) || dur < 5) dur = 60;
+    cls.sessionDuration = dur;
+    saveClasses().then(ok => {
+      if(!ok) return; // saveClasses already showed the relevant warning toast
       state.editingSchedule = false;
       toast('Schedule saved');
       renderMain();
     });
+  }
+
+  // ---------- quick check-in (for students registered in 2+ classes) ----------
+  function myRegisteredClasses(){
+    return state.classes.filter(c => (c.members||[]).some(m => m.deviceId === state.deviceId));
+  }
+
+  function renderQuickCheckin(){
+    const panel = document.getElementById('quickCheckinPanel');
+    if(!panel) return;
+    if(state.isAdmin){ panel.style.display = 'none'; return; }
+    const mine = myRegisteredClasses();
+    if(mine.length < 2){ panel.style.display = 'none'; return; }
+    panel.style.display = 'block';
+    panel.innerHTML = `
+      <div class="panel-head">Quick check-in</div>
+      <div class="quick-checkin-body">
+        <div class="note">You're registered in ${mine.length} classes — just enter today's code, no need to pick the class first.</div>
+        <input type="text" id="quickCode" placeholder="Enter session code" maxlength="8" autocomplete="off">
+        <button class="btn small green" id="quickCheckinBtn">✓ Check me in</button>
+      </div>`;
+    const btn = document.getElementById('quickCheckinBtn');
+    if(btn) btn.addEventListener('click', quickCheckin);
+    const inp = document.getElementById('quickCode');
+    if(inp) inp.addEventListener('keydown', e => { if(e.key==='Enter') quickCheckin(); });
+  }
+
+  async function quickCheckin(){
+    const codeInput = document.getElementById('quickCode');
+    const code = (codeInput.value || '').trim();
+    if(!code){ toast('Enter the code'); return; }
+    const mine = myRegisteredClasses();
+    const today = todayStr();
+    for(const cls of mine){
+      const member = (cls.members||[]).find(m => m.deviceId === state.deviceId);
+      if(!member) continue;
+      const fresh = await loadSession(cls.id, today);
+      if(!fresh || fresh.status !== 'live') continue;
+      if(fresh.verifyMode !== 'code' || !fresh.code || fresh.code !== code) continue;
+      if(fresh.checkins[member.id]){ toast(`You're already marked present for ${cls.name}`); return; }
+      fresh.checkins[member.id] = { status: 'present', time: new Date().toISOString() };
+      await saveSession(cls.id, today, fresh);
+      if(state.currentClassId === cls.id) state.session = fresh;
+      codeInput.value = '';
+      toast(`✓ Marked present for ${cls.name}`);
+      await renderMain();
+      await renderStats();
+      return;
+    }
+    toast('No live session in your classes matches that code');
   }
 
   // ---------- student-facing views ----------
@@ -1172,8 +1333,9 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
       <div class="panel join-panel">
         <div class="panel-head">New here? Register</div>
         <div class="join-body">
+          <input type="text" id="joinEnrollment" placeholder="Enrollment No.">
           <input type="text" id="joinName" placeholder="Your full name">
-          <input type="tel" id="joinMobile" placeholder="Mobile number">
+          <input type="tel" id="joinMobile" placeholder="Mobile number (optional)">
           <button class="btn small" id="joinBtn">Register this device</button>
           <div class="note">One-time only — this device becomes your attendance device for this course.</div>
         </div>
@@ -1219,30 +1381,48 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
   }
 
   async function joinRoster(cls){
+    const enrollInput = document.getElementById('joinEnrollment');
     const nameInput = document.getElementById('joinName');
     const mobileInput = document.getElementById('joinMobile');
+    const enrollment = enrollInput.value.trim();
     const name = nameInput.value.trim();
     const mobile = mobileInput.value.trim();
+    if(!enrollment){ toast('Enter your enrollment number'); return; }
     if(!name){ toast('Enter your name'); return; }
-    if(!mobile){ toast('Enter your mobile number'); return; }
+
+    // confirm the class before writing anything
+    const confirmResult = await showModal({
+      title: 'Confirm your class',
+      message: `Register "${name}" (Enrollment: ${enrollment}) for "${cls.name}"? Are you sure this is the right class?`,
+      confirmLabel: 'Yes, register me',
+      cancelLabel: 'Cancel'
+    });
+    if(confirmResult === null) return;
+
     await loadClasses();
     const freshCls = state.classes.find(c => c.id === cls.id);
     if(!freshCls){ toast('This class no longer exists'); return; }
     freshCls.members = freshCls.members || [];
-    const existing = freshCls.members.find(m => m.name.trim().toLowerCase() === name.toLowerCase() && (m.mobile||'') === mobile);
+    const existing = freshCls.members.find(m =>
+      (m.enrollment && m.enrollment.trim().toLowerCase() === enrollment.toLowerCase()) ||
+      (!m.enrollment && m.name.trim().toLowerCase() === name.toLowerCase() && (m.mobile||'') === mobile)
+    );
     if(existing){
       if(existing.deviceId){
         toast('Already registered on another device — ask your admin to reset it if this is you.');
         return;
       }
       existing.deviceId = state.deviceId;
-      await saveClasses();
+      if(!existing.enrollment) existing.enrollment = enrollment;
+      const ok1 = await saveClasses();
+      if(!ok1) return;
       toast('Welcome back — this device is now linked.');
       await renderMain();
       return;
     }
-    freshCls.members.push({ id: uid(), name, mobile, deviceId: state.deviceId });
-    await saveClasses();
+    freshCls.members.push({ id: uid(), enrollment, name, mobile, deviceId: state.deviceId });
+    const ok2 = await saveClasses();
+    if(!ok2) return;
     toast('Registered! This device is now yours for check-ins.');
     await renderMain();
     await renderStats();
@@ -1263,7 +1443,8 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
       if(entered !== member.mobile){ toast('Mobile number does not match our records'); return; }
     }
     member.deviceId = state.deviceId;
-    await saveClasses();
+    const linkOk = await saveClasses();
+    if(!linkOk) return;
     toast('Device linked — welcome back, ' + member.name);
     await renderMain();
     await renderStats();
@@ -1327,6 +1508,12 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
 
     const deviceCell = document.createElement('div');
     deviceCell.className = 'device-cell';
+    if(member.enrollment){
+      const enrollLine = document.createElement('span');
+      enrollLine.className = 'enroll-line';
+      enrollLine.textContent = 'Enroll: ' + member.enrollment;
+      deviceCell.appendChild(enrollLine);
+    }
     const mobileLine = document.createElement('span');
     mobileLine.className = 'time';
     mobileLine.textContent = member.mobile || 'no mobile on file';
@@ -1366,12 +1553,54 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
       action.appendChild(btn);
     });
 
+    const removeCell = document.createElement('div');
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'edit-btn danger';
+    removeBtn.textContent = '🗑';
+    removeBtn.title = 'Remove / de-register this student from this class';
+    removeBtn.addEventListener('click', () => deleteMember(currentClass(), member));
+    removeCell.appendChild(removeBtn);
+
     row.appendChild(num);
     row.appendChild(nameWrap);
     row.appendChild(deviceCell);
     row.appendChild(badge);
     row.appendChild(action);
+    row.appendChild(removeCell);
     return row;
+  }
+
+  async function deleteMember(cls, member){
+    if(!cls){ toast('No class selected'); return; }
+    const ok = await showConfirm({
+      title: 'Remove this student?',
+      message: `${member.name} will be completely removed from "${cls.name}" — their registration and all check-in history for this course will be deleted. This cannot be undone.`,
+      confirmLabel: 'Remove student'
+    });
+    if(!ok) return;
+    await loadClasses();
+    const freshCls = state.classes.find(c => c.id === cls.id);
+    if(!freshCls){ toast('This class no longer exists'); return; }
+    freshCls.members = (freshCls.members || []).filter(m => m.id !== member.id);
+    const removeOk = await saveClasses();
+    if(!removeOk) return;
+    // completely de-register: also purge their check-ins from every past session of this class
+    const keys = await safeList(`session:${cls.id}:`, true);
+    for(const k of keys){
+      const raw = await safeGet(k, true);
+      if(!raw) continue;
+      let sess; try{ sess = JSON.parse(raw); } catch(e){ continue; }
+      if(sess.checkins && sess.checkins[member.id]){
+        delete sess.checkins[member.id];
+        await safeSet(k, JSON.stringify(sess), true);
+      }
+    }
+    if(state.currentClassId === cls.id && state.session && state.session.checkins){
+      delete state.session.checkins[member.id];
+    }
+    toast(`${member.name} removed from ${cls.name}`);
+    await renderMain();
+    await renderStats();
   }
 
   async function resetMemberDevice(member){
@@ -1382,7 +1611,8 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
     });
     if(!ok) return;
     member.deviceId = null;
-    await saveClasses();
+    const resetOk = await saveClasses();
+    if(!resetOk) return;
     toast('Device reset for ' + member.name);
     await renderMain();
   }
@@ -1405,7 +1635,8 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
     const trimmed = (result.name || '').trim();
     if(!trimmed || trimmed === member.name) return;
     member.name = trimmed;
-    await saveClasses();
+    const renameOk = await saveClasses();
+    if(!renameOk) return;
     toast('Member renamed');
     await renderMain();
     await renderStats();
@@ -1417,6 +1648,7 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
     state.session.verifyMode = state.nextSessionMode;
     state.session.code = null;
     state.session.correctItem = null;
+    state.session.autoStarted = false; // manual start — scheduler will leave ending up to the admin
     await saveSession(state.currentClassId, state.currentDate, state.session);
     toast('Session opened — click "Generate code" when you want students to start checking in');
     await renderMain();
@@ -1435,9 +1667,48 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
     await renderMain();
   }
   async function endSession(){
+    const cls = currentClass();
+    const members = (cls && cls.members) || [];
+    const systemCount = members.filter(m => {
+      const st = (state.session.checkins[m.id]||{}).status;
+      return st === 'present' || st === 'late';
+    }).length;
+    const unmarked = members.filter(m => !state.session.checkins[m.id]);
+
+    const headResult = await showModal({
+      title: 'End session — confirm headcount',
+      message: `System currently has ${systemCount} of ${members.length} marked present/late. Enter how many students you physically counted as present before ending.`,
+      fields: [{ id: 'headcount', type: 'number', placeholder: 'e.g. ' + systemCount }],
+      confirmLabel: 'Check & end'
+    });
+    if(!headResult) return;
+    const entered = parseInt(headResult.headcount, 10);
+    if(isNaN(entered)){ toast('Enter a valid number'); return; }
+
+    if(entered !== systemCount){
+      const namesHtml = unmarked.length
+        ? unmarked.map(m => `<span class="unmarked-chip">${escapeHtml(m.name)}</span>`).join('')
+        : `<span class="unmarked-chip ok">Everyone is marked</span>`;
+      const diff = Math.abs(entered - systemCount);
+      const proceed = await showModal({
+        title: '⚠️ Headcount mismatch',
+        messageHTML: `<div class="mismatch-summary">
+            <div class="mismatch-stat">You counted <strong>${entered}</strong> · System has <strong>${systemCount}</strong> marked present/late — <span class="mismatch-diff">off by ${diff}</span></div>
+            <div class="unmarked-label">Not yet marked (${unmarked.length})</div>
+            <div class="unmarked-list">${namesHtml}</div>
+          </div>`,
+        confirmLabel: 'End anyway',
+        cancelLabel: 'Go back & fix',
+        danger: true,
+        wide: true
+      });
+      if(proceed === null){ toast('Session kept open — go mark the remaining students'); return; }
+    }
+
     state.session.status = 'closed';
+    state.session.headcount = entered;
     await saveSession(state.currentClassId, state.currentDate, state.session);
-    toast('Session ended');
+    toast(entered !== systemCount ? 'Session ended — headcount mismatch noted' : 'Session ended');
     await renderMain();
   }
   async function regenerateVerification(){
@@ -1452,16 +1723,85 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
     await renderMain();
   }
 
+  // ---------- automatic scheduling (6.1/6.3): opens sessions at their scheduled
+  // time and closes them after the class's session length has passed. Never
+  // generates a code by itself (6.2) — the admin still has to click "Generate
+  // code" for students to be able to check in. Any session the admin starts
+  // manually is left alone entirely (see startSession's autoStarted=false) so
+  // an admin override always wins.
+  function parseTimeToMinutes(t){
+    const parts = (t||'00:00').split(':');
+    return (parseInt(parts[0],10)||0) * 60 + (parseInt(parts[1],10)||0);
+  }
+  function nowMinutes(){
+    const d = new Date();
+    return d.getHours()*60 + d.getMinutes();
+  }
+  function todayWeekdayShort(){
+    return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()];
+  }
+  async function checkScheduledSessions(){
+    if(!state.classes || !state.classes.length) return;
+    const today = todayStr();
+    const wd = todayWeekdayShort();
+    const nowMin = nowMinutes();
+    for(const cls of state.classes){
+      const todaysSlots = (cls.schedule || []).filter(s => s.day === wd);
+      if(!todaysSlots.length) continue;
+      const duration = cls.sessionDuration || 60;
+      let inWindow = false, windowEnded = false;
+      todaysSlots.forEach(slot => {
+        const start = parseTimeToMinutes(slot.time);
+        const end = start + duration;
+        if(nowMin >= start && nowMin < end) inWindow = true;
+        if(nowMin >= end) windowEnded = true;
+      });
+
+      const result = await safeGetResult(sessionKey(cls.id, today), true);
+      if(!result.ok) continue;
+      let sess = result.value ? JSON.parse(result.value) : emptySession();
+      let changed = false;
+
+      if(inWindow && sess.status === 'none'){
+        sess.status = 'live';
+        sess.verifyMode = 'code';
+        sess.code = null;
+        sess.correctItem = null;
+        sess.autoStarted = true;
+        changed = true;
+      } else if(windowEnded && sess.status === 'live' && sess.autoStarted){
+        sess.status = 'closed';
+        changed = true;
+      }
+
+      if(changed){
+        await saveSession(cls.id, today, sess);
+        if(state.currentClassId === cls.id && state.currentDate === today){
+          state.session = sess;
+          await renderMain();
+          await renderStats();
+        }
+      }
+    }
+  }
+
   async function adminAddMember(){
+    const enrollInput = document.getElementById('newMemberEnrollment');
     const nameInput = document.getElementById('newMemberName');
     const mobileInput = document.getElementById('newMemberMobile');
+    const enrollment = (enrollInput ? enrollInput.value : '').trim();
     const name = nameInput.value.trim();
     const mobile = (mobileInput.value || '').trim();
-    if(!name) return;
-    const cls = currentClass();
+    if(!enrollment){ toast('Enter the enrollment number'); return; }
+    if(!name){ toast('Enter the student name'); return; }
+    await loadClasses();
+    const cls = state.classes.find(c => c.id === state.currentClassId);
+    if(!cls){ toast('This class no longer exists'); return; }
     cls.members = cls.members || [];
-    cls.members.push({ id: uid(), name, mobile, deviceId: null });
-    await saveClasses();
+    cls.members.push({ id: uid(), enrollment, name, mobile, deviceId: null });
+    const ok = await saveClasses();
+    if(!ok) return;
+    if(enrollInput) enrollInput.value = '';
     nameInput.value = '';
     mobileInput.value = '';
     toast('Member added — they can register or link their device when they open the link');
@@ -1470,13 +1810,19 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
   }
 
   async function addClass(){
-    if(state.classes.length >= MAX_CLASSES){ toast('Maximum of 15 courses reached'); return; }
     const input = document.getElementById('newClassName');
     const name = input.value.trim();
     if(!name) return;
+    await loadClasses(); // get the latest real list first, so we never add on top of a stale/empty local copy
+    if(!state.classesLoaded){
+      toast('⚠️ Not connected yet — please wait a moment and try again.');
+      return;
+    }
+    if(state.classes.length >= MAX_CLASSES){ toast('Maximum of 15 courses reached'); renderClassList(); return; }
     const newClass = { id: uid(), name, members: [], schedule: [] };
     state.classes.push(newClass);
-    await saveClasses();
+    const ok = await saveClasses();
+    if(!ok) return;
     input.value = '';
     await selectClass(newClass.id);
     toast('Course added');
@@ -1631,7 +1977,7 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
   async function exportCSV(cls){
     toast('Preparing CSV…');
     const keys = (await safeList(`session:${cls.id}:`, true)).slice().sort();
-    const rows = [['Date','Member','Mobile','Status','Time']];
+    const rows = [['Date','Member','Enrollment','Mobile','Status','Time']];
     for(const k of keys){
       const raw = await safeGet(k, true);
       if(!raw) continue;
@@ -1643,7 +1989,7 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
         const entry = sess.checkins[m.id];
         if(!entry) return;
         const timeStr = entry.time ? new Date(entry.time).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
-        rows.push([date, m.name, m.mobile||'', entry.status, timeStr]);
+        rows.push([date, m.name, m.enrollment||'', m.mobile||'', entry.status, timeStr]);
       });
     }
     if(rows.length === 1){ toast('No attendance history yet'); return; }
@@ -1673,7 +2019,7 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
 
     for(const cls of state.classes){
       const keys = (await safeList(`session:${cls.id}:`, true)).slice().sort();
-      const sheetRows = [['Date','Member','Mobile','Status','Time']];
+      const sheetRows = [['Date','Member','Enrollment','Mobile','Status','Time']];
       let totalSessions = 0, totalPresent = 0, totalSlots = 0;
       for(const k of keys){
         const raw = await safeGet(k, true);
@@ -1688,7 +2034,7 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
           if(entry && (entry.status === 'present' || entry.status === 'late')) totalPresent++;
           if(entry){
             const timeStr = entry.time ? new Date(entry.time).toLocaleString() : '';
-            sheetRows.push([date, m.name, m.mobile || '', entry.status, timeStr]);
+            sheetRows.push([date, m.name, m.enrollment || '', m.mobile || '', entry.status, timeStr]);
           }
         });
       }
@@ -1829,7 +2175,7 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
     initModeIndicator();
     document.getElementById('datePicker').value = state.currentDate;
     document.getElementById('mainArea').innerHTML = '<div class="loading-row">Opening the roll book…</div>';
-    await loadClasses();
+    const loaded = await loadClassesWithRetry(4);
     // Self-healing: directly check whether a PIN is actually stored, rather
     // than trusting a separate "setup done" flag that could get out of sync
     // if an earlier save silently failed.
@@ -1837,13 +2183,33 @@ select,input[type=date],input[type=text],input[type=time],input[type=tel],input[
     if(!existingPin){
       await saveAdminPin(DEFAULT_PIN);
     }
-    if(state.classes.length){
-      await selectClass(state.classes[0].id);
+    if(loaded){
+      if(state.classes.length){
+        await selectClass(state.classes[0].id);
+      } else {
+        renderClassList();
+        await renderMain();
+      }
     } else {
-      renderClassList();
-      await renderMain();
+      // Never fall through to an editable, empty-looking roster on a connection
+      // failure — that's exactly what previously let a blip wipe real data.
+      // Show a clear "not connected" state instead and keep retrying quietly
+      // until a real read succeeds.
+      document.getElementById('mainArea').innerHTML = `<div class="empty-state"><span class="display">Can't reach the database</span>Your existing classes and registrations are safe — nothing will be changed until we reconnect. Retrying automatically…</div>`;
+      const retryTimer = setInterval(async () => {
+        const ok = await loadClasses();
+        if(ok){
+          clearInterval(retryTimer);
+          toast('✅ Reconnected');
+          if(state.classes.length){ await selectClass(state.classes[0].id); }
+          else { renderClassList(); await renderMain(); }
+          await renderStats();
+        }
+      }, 5000);
     }
     startPolling();
+    await checkScheduledSessions();
+    setInterval(checkScheduledSessions, 60000);
   }
 
   init();
